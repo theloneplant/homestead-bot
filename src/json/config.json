@@ -1,0 +1,13 @@
+{
+	"botId": "HOMESTEADBOT",
+	"clients": [
+		{
+			"name": "coffeebean",
+			"type": "discord"
+		},
+		{
+			"name": "thelunchcrew",
+			"type": "discord"
+		}
+	]
+}

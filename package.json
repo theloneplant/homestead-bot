@@ -1,0 +1,17 @@
+{
+  "name": "homestead-bot",
+  "version": "1.0.0",
+  "description": "A very helpful bot",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "author": "theloneplant",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.2",
+    "http": "0.0.0",
+    "path": "^0.12.7",
+    "serve-favicon": "^2.4.5"
+  }
+}
