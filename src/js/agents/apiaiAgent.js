@@ -2,14 +2,14 @@ const path = require('path');
 const ApiAi = require('apiai');
 const config = require(path.join(__dirname, '../../json/config.json'));
 const credentials = require(path.join(__dirname, '../../../credentials/agents.json'));
-const agentHub = require(path.join(__dirname, 'agentHub'));
+const actionHub = require(path.join(__dirname, '../actions/actionHub'));
 
 module.exports = function() {
-	var apiaiAgent = ApiAi(credentials.apiai.client_token);
+	var apiai = ApiAi(credentials.apiai.client_token);
 
 	function interpret(req, cb) {
-		var message = req.message.replace(config.botId, 'you');
-		var request = apiaiAgent.textRequest(message, {
+		req.message = replaceNicknames(req);
+		var request = apiai.textRequest(req.message, {
 			sessionId: '1'
 		});
 		request.on('response', (response) => {
@@ -20,8 +20,7 @@ module.exports = function() {
 				'params': response.result.parameters
 			};
 			req.agent = agent;
-			const agentHub = require(path.join(__dirname, 'agentHub'));
-			agentHub.run(req, cb);
+			actionHub.run(req, cb);
 		});
 		request.on('error', (error) => {
 			console.log('oof ouch owie');
@@ -29,5 +28,15 @@ module.exports = function() {
 		});
 		request.end();
 	}
+
+	function replaceNicknames(req) {
+		var nicknames = config.groups[req.client.group].nicknames;
+		var message = req.message.replace(config.botId, 'you');
+		for(var i in nicknames) {
+			message = message.replace(nicknames[i], 'you');
+		}
+		return message;
+	}
+
 	return { interpret }
 }();

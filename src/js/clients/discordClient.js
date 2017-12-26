@@ -1,11 +1,11 @@
 const path = require('path');
 const Discord = require('discord.js');
 const config = require(path.join(__dirname, '../../json/config.json'));
-const clientHub = require(path.join(__dirname, '../clients/clientHub'));
+const agentHub = require(path.join(__dirname, '../agents/agentHub'));
 
 class DiscordClient {
-	constructor(name, credentials) {
-		this.name = name;
+	constructor(group, credentials) {
+		this.group = group;
 		this.discordClient = new Discord.Client();
 		this.discordClient.login(credentials.token);
 		this.discordClient.on('message', msg => {
@@ -24,12 +24,12 @@ class DiscordClient {
 			'to': to,
 			'message': message,
 			'client': {
-				'name': this.name,
+				'group': this.group,
 				'type': 'discord'
 			}
 		};
 
-		clientHub.process(req, (res, err) => {
+		agentHub.interpret(req, (res, err) => {
 			if (err) {
 				console.log(err);
 			}

@@ -1,16 +1,17 @@
 const path = require('path');
-const actionHub = require(path.join(__dirname, '../actions/actionHub'));
+const config = require(path.join(__dirname, '../../json/config.json'));
 const apiaiAgent = require(path.join(__dirname, '../agents/apiaiAgent'));
 
 module.exports = function() {
-	function run(req, cb) {
-		actionHub.run(req, cb);
-	}
-
 	function interpret(req, cb) {
 		if (!req.to) {
-			// Figure out if it was sent to you
-			cb(); // Skip request
+			if (isMentioned(req)) {
+				mapInterpret(req, cb);
+			}
+			else {
+				// Ignore the call since the bot wasn't mentioned
+				cb();
+			}
 		}
 		else {
 			mapInterpret(req, cb);
@@ -21,5 +22,21 @@ module.exports = function() {
 		apiaiAgent.interpret(req, cb);
 	}
 
-	return { run, interpret };
+	function isMentioned(req) {
+		var msgArr = req.message.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '').split(/\s/g);
+		var nicknames = config.groups[req.client.group].nicknames;
+		var flag = false;
+		for(var i in msgArr) {
+			var word = msgArr[i].toLowerCase();
+			for(var j in nicknames) {
+				var name = nicknames[j].toLowerCase();
+				if (word === name) {
+					flag = true;
+				}
+			}
+		}
+		return flag;
+	}
+
+	return { interpret };
 }();
