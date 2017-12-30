@@ -2,15 +2,36 @@ const path = require('path');
 const YouTube = require('youtube-node');
 const credentials = require(path.join(__dirname, '../../../credentials/credentials.json'));
 
-class YouTube {
-	constructor(group, credentials) {
-		this.group = group;
-		this.discordClient = new Discord.Client();
-		this.discordClient.login(credentials.token);
-		this.discordClient.on('message', msg => {
-			this.receive(msg);
+module.exports = function() {
+	const youTube = new YouTube();
+	youTube.setKey(credentials.actions.google.key);
+
+	function search(message, cb) {
+		youTube.search(message, 1, function(error, result) {
+			if (error) {
+				console.log(error);
+				cb('', '', error);
+			}
+			else {
+				if (result.items[0].id.channelId) {
+					cb('channel', 'https://www.youtube.com/channel/' + result.items[0].id.channelId);
+				}
+				else if (result.items[0].id.playlistId) {
+					cb('playlist', 'https://www.youtube.com/playlist?list=' + result.items[0].id.playlistId);
+				}
+				else if (result.items[0].id.videoId) {
+					cb('video', 'https://www.youtube.com/watch?v=' + result.items[0].id.videoId);
+				}
+				else {
+					cb('', '', 'Unable to recognize search result');
+				}
+				console.log(JSON.stringify(result, null, 2));
+				console.log(result);
+				console.log(result.items[0].id);
+				console.log(result.items[0].id.videoId);
+			}
 		});
 	}
-}
 
-module.exports = YouTube;
+	return { search };
+}();

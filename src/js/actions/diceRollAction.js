@@ -1,15 +1,14 @@
+const path = require('path');
+const action = require(path.join(__dirname, 'action'));
+const math = require(path.join(__dirname, '../util/math'));
+const Error = require(path.join(__dirname, '../util/error'));
+
 module.exports = function() {
-	var errorMessages = [
+	var error = new Error([
 		'I can\'t tell what you want me to roll',
 		'Could you try wording that differently?',
 		'I couldn\'t understand your roll, try saying it differently'
-	];
-
-	function randomInt(min, max) {
-		min = Math.ceil(min);
-		max = Math.floor(max);
-		return Math.floor(Math.random() * (max - min + 1)) + min;
-	}
+	]);
 
 	function calculateRoll(roll) {
 		var result = NaN;
@@ -19,10 +18,10 @@ module.exports = function() {
 
 		if (!isNaN(dice) && dice > 0 && rollNums.length === 2) {
 			if (!isNaN(multiplier) && multiplier > 0) {
-				result = randomInt(0, multiplier * dice - multiplier) + multiplier;
+				result = math.randomInt(0, multiplier * dice - multiplier) + multiplier;
 			}
 			else {
-				result = randomInt(0, dice - 1) + 1;
+				result = math.randomInt(0, dice - 1) + 1;
 			}
 		}
 		else if (!isNaN(multiplier)) {
@@ -89,22 +88,15 @@ module.exports = function() {
 		if (params.roll) {
 			console.log(params.roll)
 			try {
-				sendResponse(multiRoll(params.roll), req, cb);
+				action.sendResponse(multiRoll(params.roll), req, cb);
 			}
 			catch (err) {
-				sendResponse(errorMessages[randomInt(0, errorMessages.length - 1)], req, cb);
+				action.sendResponse(error.randomError(), req, cb);
 			}
 		}
 		else {
-			sendResponse(defaultRoll(), req, cb);
+			action.sendResponse(defaultRoll(), req, cb);
 		}
-	}
-
-	function sendResponse(str, req, cb) {
-		req.action = {
-			'result': str
-		};
-		cb(req);
 	}
 
 	return { run };

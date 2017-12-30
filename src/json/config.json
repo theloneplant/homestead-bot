@@ -12,7 +12,8 @@
 				"alfy",
 				"fred",
 				"freddy"
-			]
+			],
+			"prefix": "/"
 		},
 		"coffeebean": {
 			"clients": [
@@ -20,7 +21,8 @@
 			],
 			"nicknames": [
 				"jarvis"
-			]
+			],
+			"prefix": "/"
 		},
 		"thinkery": {
 			"clients": [
@@ -29,7 +31,8 @@
 			"nicknames": [
 				"shork",
 				"bots"
-			]
+			],
+			"prefix": "!"
 		}
 	}
 }
