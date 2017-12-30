@@ -11,6 +11,7 @@ class DiscordClient {
 		this.discordClient.on('message', msg => {
 			this.receive(msg);
 		});
+		console.log('Created discord client for ' + group);
 	}
 
 	receive(msg) {

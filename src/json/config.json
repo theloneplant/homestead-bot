@@ -2,9 +2,9 @@
 	"botId": "HOMESTEADBOT",
 	"groups": {
 		"thelunchcrew": {
-			"clients": {
-				"discord": true
-			},
+			"clients": [
+				"discord"
+			],
 			"nicknames": [
 				"alfred",
 				"al",
@@ -15,17 +15,17 @@
 			]
 		},
 		"coffeebean": {
-			"clients": {
-				"discord": true
-			},
+			"clients": [
+				"discord"
+			],
 			"nicknames": [
 				"jarvis"
 			]
 		},
 		"thinkery": {
-			"clients": {
-				"discord": true
-			},
+			"clients": [
+				"discord"
+			],
 			"nicknames": [
 				"shork",
 				"bots"

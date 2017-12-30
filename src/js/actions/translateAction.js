@@ -1,6 +1,5 @@
 const path = require('path');
 const Translate = require('google-translate-api');
-const credentials = require(path.join(__dirname, '../../../credentials/actions.json'));
 
 module.exports = function() {
 	const errorMessages = [
@@ -19,7 +18,7 @@ module.exports = function() {
 		var params = req.agent.params;
 		var language = params.language || 'en';
 		Translate(params.message, {to: language}).then(res => {
-			sendResponse('Translating "' + params.message + '" to ' + params.language + '\n' + res.text, req, cb);
+			sendResponse('Translating ' + params.message + ' to ' + params.language + ':\n' + res.text, req, cb);
 		}).catch(err => {
 			console.error(err);
 			sendResponse(errorMessages[randomInt(0, errorMessages.length - 1)], req, cb);

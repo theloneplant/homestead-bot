@@ -1,11 +1,11 @@
 const path = require('path');
 const ApiAi = require('apiai');
 const config = require(path.join(__dirname, '../../json/config.json'));
-const credentials = require(path.join(__dirname, '../../../credentials/agents.json'));
+const credentials = require(path.join(__dirname, '../../../credentials/credentials.json'));
 const actionHub = require(path.join(__dirname, '../actions/actionHub'));
 
 module.exports = function() {
-	var apiai = ApiAi(credentials.apiai.client_token);
+	var apiai = ApiAi(credentials.agents.apiai.client_token);
 
 	function interpret(req, cb) {
 		req.message = replaceNicknames(req);

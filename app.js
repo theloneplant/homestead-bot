@@ -22,25 +22,7 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
-app.set('views', path.join(__dirname, 'src/views'));
-app.set('view engine', 'pug');
-
 app.set('port', port);
-
-app.use('/api/v1', require(path.join(__dirname, 'routes/api/v1')));
-
-app.use((req, res, next) => {
-	var err = new Error('Not Found');
-	err.status = 404;
-	next(err);
-});
-
-app.use((err, req, res, next) => {
-	res.locals.message = err.message;
-	res.locals.error = req.app.get('env') === 'development' ? err : {};
-	res.status(err.status || 500);
-	res.render('error');
-});
 
 function onError(error) {
 	if (error.syscall !== 'listen') throw error;

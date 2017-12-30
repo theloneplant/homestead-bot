@@ -1,10 +1,10 @@
 const path = require('path');
 const YouTube = require('youtube-node');
-const credentials = require(path.join(__dirname, '../../../credentials/actions.json'));
+const credentials = require(path.join(__dirname, '../../../credentials/credentials.json'));
 
 module.exports = function() {
 	const youTube = new YouTube();
-	youTube.setKey(credentials.google.key);
+	youTube.setKey(credentials.actions.google.key);
 
 	const errorMessages = [
 		'Sorry I couldn\'t find that on YouTube.',
@@ -32,11 +32,11 @@ module.exports = function() {
 						'https://www.youtube.com/channel/' + result.items[0].id.channelId, req, cb);
 				}
 				else if (result.items[0].id.playlistId) {
-					sendResponse('Here\'s a playlist I found for ' + params.search + '\n' +
+					sendResponse('Here\'s a playlist I found for ' + params.search + ':\n' +
 						'https://www.youtube.com/playlist?list=' + result.items[0].id.playlistId, req, cb);
 				}
 				else if (result.items[0].id.videoId) {
-					sendResponse('Here\'s a video I found for ' + params.search + '\n' +
+					sendResponse('Here\'s a video I found for ' + params.search + ':\n' +
 						'https://www.youtube.com/watch?v=' + result.items[0].id.videoId, req, cb);
 				}
 				else {

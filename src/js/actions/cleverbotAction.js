@@ -2,17 +2,17 @@ const path = require('path');
 const cleverbotnode = require('cleverbot-node');
 const cleverbotio = require('cleverbot.io');
 const config = require(path.join(__dirname, '../../json/config.json'));
-const credentials = require(path.join(__dirname, '../../../credentials/actions.json'));
+const credentials = require(path.join(__dirname, '../../../credentials/credentials.json'));
 
 module.exports = function() {
-	const cbotio = new cleverbotio(credentials.cleverbotio.user, credentials.cleverbotio.key);
+	const cbotio = new cleverbotio(credentials.actions.cleverbotio.user, credentials.actions.cleverbotio.key);
 	cbotio.setNick(config.botId);
 	cbotio.create(function (err, session) {
 		cbotio.setNick(session);
 	});
 
 	const cbot = new cleverbotnode();
-	cbot.configure({ botapi: credentials.cleverbot.token });
+	cbot.configure({ botapi: credentials.actions.cleverbot.token });
 
 	function run(req, cb) {
 		cbot.write(req.message, (response) => {
