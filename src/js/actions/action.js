@@ -6,5 +6,12 @@ module.exports = function() {
 		cb(req);
 	}
 
-	return { sendResponse };
+	function sendStream(url, req, cb) {
+		req.action = {
+			'stream': url
+		};
+		cb(req);
+	}
+
+	return { sendResponse, sendStream };
 }();

@@ -2,32 +2,34 @@
 	"botId": "HOMESTEADBOT",
 	"groups": {
 		"thelunchcrew": {
-			"clients": [
-				"discord"
-			],
+			"clients": {
+				"discord": {
+					"defaultVoiceChannel": "385728151394713605"
+				}
+			},
 			"nicknames": [
 				"alfred",
-				"al",
-				"alphy",
-				"alfy",
-				"fred",
-				"freddy"
+				"al"
 			],
 			"prefix": "/"
 		},
 		"coffeebean": {
-			"clients": [
-				"discord"
-			],
+			"clients": {
+				"discord": {
+					"defaultVoiceChannel": "376495319489314816"
+				}
+			},
 			"nicknames": [
 				"jarvis"
 			],
 			"prefix": "/"
 		},
 		"thinkery": {
-			"clients": [
-				"discord"
-			],
+			"clients": {
+				"discord": {
+					"defaultVoiceChannel": "369321243440054272"
+				}
+			},
 			"nicknames": [
 				"shork",
 				"bots"

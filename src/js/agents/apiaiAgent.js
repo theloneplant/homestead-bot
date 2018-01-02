@@ -5,7 +5,7 @@ const credentials = require(path.join(__dirname, '../../../credentials/credentia
 const actionHub = require(path.join(__dirname, '../actions/actionHub'));
 
 module.exports = function() {
-	var apiai = ApiAi(credentials.agents.apiai.client_token);
+	var apiai = ApiAi(credentials.agents.apiai.token);
 
 	function interpret(req, cb) {
 		req.message = replaceNicknames(req);

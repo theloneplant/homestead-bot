@@ -6,7 +6,7 @@ const config = require(path.join(__dirname, '../../json/config.json'));
 const credentials = require(path.join(__dirname, '../../../credentials/credentials.json'));
 
 module.exports = function() {
-	const cbotio = new cleverbotio(credentials.actions.cleverbotio.user, credentials.actions.cleverbotio.key);
+	const cbotio = new cleverbotio(credentials.actions.cleverbotio.user, credentials.actions.cleverbotio.token);
 	cbotio.setNick(config.botId);
 	cbotio.create(function (err, session) {
 		cbotio.setNick(session);

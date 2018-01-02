@@ -4,7 +4,7 @@ const credentials = require(path.join(__dirname, '../../../credentials/credentia
 
 module.exports = function() {
 	const youTube = new YouTube();
-	youTube.setKey(credentials.actions.google.key);
+	youTube.setKey(credentials.actions.google.token);
 
 	function search(message, cb) {
 		youTube.search(message, 1, function(error, result) {
@@ -25,10 +25,6 @@ module.exports = function() {
 				else {
 					cb('', '', 'Unable to recognize search result');
 				}
-				console.log(JSON.stringify(result, null, 2));
-				console.log(result);
-				console.log(result.items[0].id);
-				console.log(result.items[0].id.videoId);
 			}
 		});
 	}
