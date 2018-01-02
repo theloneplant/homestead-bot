@@ -16,10 +16,10 @@ module.exports = function() {
 		youTube.search(search, (type, url, err) => {
 			if (err) {
 				console.log(err);
-				action.sendResponse(error.randomError(), req, cb);
+				action.sendMessage(error.randomError(), req, cb);
 			}
 			else {
-				action.sendResponse('Here\'s a ' + type + ' I found for ' + search + ':\n' + url, req, cb);
+				action.sendMessage('Here\'s a ' + type + ' I found for ' + search + ':\n' + url, req, cb);
 			}
 		});
 	}

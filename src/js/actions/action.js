@@ -1,17 +1,15 @@
 module.exports = function() {
-	function sendResponse(str, req, cb) {
+	function sendMessage(str, req, cb) {
 		req.action = {
 			'result': str
 		};
 		cb(req);
 	}
 
-	function sendStream(url, req, cb) {
-		req.action = {
-			'stream': url
-		};
+	function sendInfo(info, req, cb) {
+		req.action = info;
 		cb(req);
 	}
 
-	return { sendResponse, sendStream };
+	return { sendMessage, sendInfo };
 }();

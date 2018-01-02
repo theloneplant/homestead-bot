@@ -88,14 +88,14 @@ module.exports = function() {
 		if (params.roll) {
 			console.log(params.roll)
 			try {
-				action.sendResponse(multiRoll(params.roll), req, cb);
+				action.sendMessage(multiRoll(params.roll), req, cb);
 			}
 			catch (err) {
-				action.sendResponse(error.randomError(), req, cb);
+				action.sendMessage(error.randomError(), req, cb);
 			}
 		}
 		else {
-			action.sendResponse(defaultRoll(), req, cb);
+			action.sendMessage(defaultRoll(), req, cb);
 		}
 	}
 

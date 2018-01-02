@@ -18,16 +18,16 @@ module.exports = function() {
 	function run(req, cb) {
 		cbot.write(req.message, (response) => {
 			if (response && response.output) {
-				action.sendResponse(response.output, req, cb);
+				action.sendMessage(response.output, req, cb);
 			}
 			else {
 				console.log('Oh no I\'m dumb');
 				cbotio.ask(req.message, (err, response) => {
 					if (err) {
-						action.sendResponse('I\'m dumb now, talk to me later', req, cb);
+						action.sendMessage('I\'m dumb now, talk to me later', req, cb);
 					}
 					else if (response) {
-						action.sendResponse('*Using fallback cleverbot*\n' + response, req, cb);
+						action.sendMessage('*Using fallback cleverbot*\n' + response, req, cb);
 					}
 				});
 			}

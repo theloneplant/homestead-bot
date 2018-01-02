@@ -1,4 +1,5 @@
 const path = require('path');
+const ytdl = require('ytdl-core');
 const Discord = require('discord.js');
 const config = require(path.join(__dirname, '../../json/config.json'));
 const agentHub = require(path.join(__dirname, '../agents/agentHub'));
@@ -41,39 +42,11 @@ class DiscordClient {
 			console.log(err);
 		}
 		else if (res && res.action) {
-
 			if (res.action.result) {
 				this.send(res, msg);
 			}
-			else if (res.action.stream) {
-				var voiceConnection;
-				if (this.discordClient.internal && this.discordClient.internal.voiceConnection) {
-					voiceConnection = this.discordClient.internal.voiceConnection;
-					this.discordClient.internal.voiceConnection.stopPlaying();
-					this.discordClient.internal.leaveVoiceChannel();
-					voiceConnection.player.dispatcher.end();
-					voiceConnection.disconnect();
-				}
-				if (msg.author.voiceChannel) {
-					this.voiceChannel = msg.author.voiceChannel;
-				}
-				else {
-					this.voiceChannel = this.discordClient.channels.get(this.defaultVoiceChannel);
-				}
-
-				this.voiceChannel.join().then((connection) => {
-					console.log(JSON.stringify(connection));
-					this.voiceConnection = connection;
-					this.dispatcher = connection.playStream(res.action.stream);
-
-					this.dispatcher.once("end", reason => {
-						this.dispatcher = null;
-						this.discordClient.user.setGame();
-						if(!stopped && !is_queue_empty()) {
-							play_next_song();
-						}
-					});
-				}).catch(err => console.log(err));
+			else if (res.action.streamService === 'youtube') {
+				this.playYoutube(res.action.streamUrl, msg);
 			}
 		}
 	}
@@ -81,6 +54,39 @@ class DiscordClient {
 	send(res, msg) {
 		var message = res.action.result.replace('*', '\\*');
 		msg.channel.send(msg.author + ' ' + message);
+	}
+
+	playYoutube(streamUrl, msg) {
+		var voiceChannel;
+		if (this.dispatcher) {
+			this.dispatcher.end('Playing new track');
+		}
+		if (msg.member.voiceChannel) {
+			voiceChannel = msg.member.voiceChannel;
+		}
+		else {
+			voiceChannel = this.discordClient.channels.get(this.defaultVoiceChannel);
+		}
+
+		voiceChannel.join().then((connection) => {
+			var stream = ytdl(streamUrl, { filter : 'audioonly' });
+			this.connection = connection;
+			this.dispatcher = this.connection.playStream(stream, { seek: 0, volume: 0.5 });
+			this.dispatcher.setBitrate(128);
+
+			this.connection.on('error', (error) => {
+				console.log('Connection error: \n' + error);
+			});
+			this.dispatcher.on('error', (error) => {
+				console.log('Dispatcher error: \n' + error);
+			});
+			this.dispatcher.on('end', (reason) => {
+				console.log('Reason: ' + reason);
+				// This is a temporary hack for playing a song after one is already started
+				this.connection.disconnect();
+				// TODO: Send response to action and queue next song if available
+			});
+		}).catch(err => console.log('Error: ' + err));
 	}
 }
 
