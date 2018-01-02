@@ -14,10 +14,10 @@ module.exports = function() {
 		var params = req.agent.params;
 		var language = params.language || 'en';
 		translate(params.message, {to: language}).then(res => {
-			action.sendResponse('Translating ' + params.message + ' to ' + params.language + ':\n' + res.text, req, cb);
+			action.sendMessage('Translating ' + params.message + ' to ' + params.language + ':\n' + res.text, req, cb);
 		}).catch(err => {
 			console.error(err);
-			action.sendResponse(error.randomError(), req, cb);
+			action.sendMessage(error.randomError(), req, cb);
 		});
 	}
 

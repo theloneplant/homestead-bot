@@ -17,9 +17,6 @@ credentials/
 # Remote sync
 .remote-sync.json
 
-# Docker
-Dockerfile
-
 # Runtime data
 pids
 *.pid

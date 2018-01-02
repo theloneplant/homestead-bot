@@ -14,17 +14,13 @@ module.exports = function() {
 			if (config.groups.hasOwnProperty(key)) {
 				var group = config.groups[key];
 
-				for (var i in group.clients) {
-					var client = group.clients[i];
-					if (client === 'discord') {
-						console.log(key);
-						console.log(client);
-						clients.push(new DiscordClient(key, credentials.clients[key][client]));
-						console.log('Clients length: ' + clients.length);
+				for (var clientKey in group.clients) {
+					if (clientKey === 'discord') {
+						clients.push(new DiscordClient(key, credentials.clients[key][clientKey]));
 					}
 					else {
 						// Do nothing
-						console.log('Unable to find client "' + client + '"');
+						console.log('Unable to find client "' + clientKey + '"');
 					}
 				}
 			}

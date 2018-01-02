@@ -19,7 +19,19 @@ module.exports = function() {
 				action.sendMessage(error.randomError(), req, cb);
 			}
 			else {
-				action.sendMessage('Here\'s a ' + type + ' I found for ' + search + ':\n' + url, req, cb);
+				if (type === 'video') {
+					var info = {
+						'streamUrl': url,
+						'streamService': 'youtube'
+					}
+					action.sendMessage('Playing a ' + type + ' I found for ' + search + ':\n' + url, req, cb);
+					action.sendInfo(info, req, cb);
+				}
+				else {
+					action.sendMessage('Playing a ' + type + ' is unsupported right now\n'+
+						'Here\'s a ' + type + ' I found for ' + search + ':\n' + url, req, cb);
+				}
+				// TODO: Check and queue other songs if other types
 			}
 		});
 	}

@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-const debug = require('debug')('first-iteration:server');
 const https = require('https');
 const fs = require('fs');
 const express = require('express');
@@ -44,7 +43,7 @@ function onError(error) {
 function onListening() {
 	var addr = server.address();
 	var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
-	debug('Listening on ' + bind);
+	console.log('Listening on ' + bind);
 }
 
 module.exports = app;
