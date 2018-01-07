@@ -5,9 +5,6 @@ const config = file.read(path.join(__dirname, '../../config/server.json'));
 const credentials = file.read(path.join(__dirname, '../../config/credentials.json'));
 
 module.exports = function() {
-	var coffeebean;
-	var thelunchcrew;
-	var thinkery;
 	var clients = [];
 
 	function start() {
