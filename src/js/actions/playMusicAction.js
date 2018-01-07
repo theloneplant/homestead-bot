@@ -3,7 +3,7 @@ const file = require(path.join(__dirname, '../util/file'));
 const action = require(path.join(__dirname, 'action'));
 const Error = require(path.join(__dirname, '../util/error'));
 const youTube = require(path.join(__dirname, '../util/youtube'));
-const credentials = file.read(path.join(__dirname, '../../../credentials/credentials.json'));
+const credentials = file.read(path.join(__dirname, '../../../config/credentials.json'));
 
 module.exports = function() {
 	var error = new Error([

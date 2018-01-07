@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const http = require('http');
 const https = require('https');
 const express = require('express');
 const path = require('path');
@@ -9,14 +10,22 @@ const port = process.env.PORT || config.port;
 
 homesteadBot.start();
 
-const options = {
-	key: file.read(path.join(__dirname, 'ssl/ssl.key')),
-	cert: file.read(path.join(__dirname, 'ssl/ssl.crt')),
-	ca: file.read (path.join(__dirname, 'ssl/ssl.ca-bundle'))
-};
-
 var app = express();
-var server = https.createServer(options, app);
+var server, options;
+
+try {
+	options = {
+		key: file.read(path.join(__dirname, 'ssl/ssl.key')),
+		cert: file.read(path.join(__dirname, 'ssl/ssl.crt')),
+		ca: file.read (path.join(__dirname, 'ssl/ssl.ca-bundle'))
+	};
+	server = https.createServer(options, app);
+}
+catch(err) {
+	console.log('Unable to use HTTPS, falling back to HTTP');
+	server = http.createServer(app);
+}
+
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
