@@ -1,7 +1,8 @@
 const path = require('path');
+const file = require(path.join(__dirname, 'util/file'));
 const DiscordClient = require(path.join(__dirname, 'clients/discordClient'));
-const config = require(path.join(__dirname, '../json/config.json'));
-const credentials = require(path.join(__dirname, '../../credentials/credentials.json'));
+const config = file.read(path.join(__dirname, '../../config/server.json'));
+const credentials = file.read(path.join(__dirname, '../../credentials/credentials.json'));
 
 module.exports = function() {
 	var coffeebean;

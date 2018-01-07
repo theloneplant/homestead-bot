@@ -1,9 +1,10 @@
 const path = require('path');
 const cleverbotnode = require('cleverbot-node');
 const cleverbotio = require('cleverbot.io');
+const file = require(path.join(__dirname, '../util/file'));
 const action = require(path.join(__dirname, 'action'));
-const config = require(path.join(__dirname, '../../json/config.json'));
-const credentials = require(path.join(__dirname, '../../../credentials/credentials.json'));
+const config = file.read(path.join(__dirname, '../../../config/server.json'));
+const credentials = file.read(path.join(__dirname, '../../../credentials/credentials.json'));
 
 module.exports = function() {
 	const cbotio = new cleverbotio(credentials.actions.cleverbotio.user, credentials.actions.cleverbotio.token);

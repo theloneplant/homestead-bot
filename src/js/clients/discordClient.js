@@ -1,8 +1,9 @@
 const path = require('path');
 const ytdl = require('ytdl-core');
 const Discord = require('discord.js');
-const config = require(path.join(__dirname, '../../json/config.json'));
+const file = require(path.join(__dirname, '../util/file'));
 const agentHub = require(path.join(__dirname, '../agents/agentHub'));
+const config = file.read(path.join(__dirname, '../../../config/server.json'));
 
 class DiscordClient {
 	constructor(group, credentials) {

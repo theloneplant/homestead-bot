@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 const https = require('https');
-const fs = require('fs');
 const express = require('express');
 const path = require('path');
-const config = require(path.join(__dirname, 'config/server'));
+const file = require(path.join(__dirname, 'src/js/util/file'));
 const homesteadBot = require(path.join(__dirname, 'src/js/bot'));
+const config = file.read(path.join(__dirname, 'config/server.json'));
 const port = process.env.PORT || config.port;
 
 homesteadBot.start();
 
 const options = {
-	key: fs.readFileSync(path.join(__dirname, 'ssl/ssl.key')),
-	cert: fs.readFileSync(path.join(__dirname, 'ssl/ssl.crt')),
-	ca: fs.readFileSync (path.join(__dirname, 'ssl/ssl.ca-bundle'))
+	key: file.read(path.join(__dirname, 'ssl/ssl.key')),
+	cert: file.read(path.join(__dirname, 'ssl/ssl.crt')),
+	ca: file.read (path.join(__dirname, 'ssl/ssl.ca-bundle'))
 };
 
 var app = express();
