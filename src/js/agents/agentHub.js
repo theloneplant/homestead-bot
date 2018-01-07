@@ -1,6 +1,7 @@
 const path = require('path');
-const config = require(path.join(__dirname, '../../json/config.json'));
+const file = require(path.join(__dirname, '../util/file'));
 const apiaiAgent = require(path.join(__dirname, '../agents/apiaiAgent'));
+const config = file.read(path.join(__dirname, '../../../config/server.json'));
 
 module.exports = function() {
 	function interpret(req, cb) {

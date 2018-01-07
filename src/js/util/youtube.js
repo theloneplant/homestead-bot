@@ -1,6 +1,7 @@
 const path = require('path');
 const YouTube = require('youtube-node');
-const credentials = require(path.join(__dirname, '../../../credentials/credentials.json'));
+const file = require(path.join(__dirname, '../util/file'));
+const credentials = file.read(path.join(__dirname, '../../../credentials/credentials.json'));
 
 module.exports = function() {
 	const youTube = new YouTube();
