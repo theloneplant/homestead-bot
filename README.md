@@ -23,7 +23,7 @@ Basic readme, should eventually be updated with more in depth instructions, feat
 
 The bot requires two config files (relative to the root folder of the GitHub project):
 * config/server.json
-* credentials/credentials.json
+* config/credentials.json
 
 Optional - If you include these files then the bot will try to run using https, otherwise it'll use http:
 * ssl/ssl.key
