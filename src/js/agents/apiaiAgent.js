@@ -3,7 +3,7 @@ const ApiAi = require('apiai');
 const file = require(path.join(__dirname, '../util/file'));
 const actionHub = require(path.join(__dirname, '../actions/actionHub'));
 const config = file.read(path.join(__dirname, '../../../config/server.json'));
-const credentials = file.read(path.join(__dirname, '../../../credentials/credentials.json'));
+const credentials = file.read(path.join(__dirname, '../../../config/credentials.json'));
 
 module.exports = function() {
 	var apiai = ApiAi(credentials.agents.apiai.token);
