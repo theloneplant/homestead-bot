@@ -8,8 +8,7 @@ Basic readme, should eventually be updated with more in depth instructions, feat
   * npm
   * nodejs
   * ffmpeg
-* Run `npm i`
-* Start the server by running `node app.js`
+* Run `npm i` and `node app.js` to install modules and run the server
 
 ### Docker setup:
 * Add config files
@@ -17,7 +16,7 @@ Basic readme, should eventually be updated with more in depth instructions, feat
 * Run build.sh
 * If you make changes, you can run build.sh again and it should build much quicker since it won't need to install Debian or Node modules. It will show up when running `docker ps -a` as the name you specified in the config, and likewise you can view logs by running `docker logs name`
 
-*Todo: Add fallback in build.sh if Docker isn't found or use a param*
+*Todo: Add standard build script for non-docker use*
 
 ### Configs:
 
@@ -39,7 +38,7 @@ These should've been given to you by your SSL provider
     "port": "0000",
     "botId": "HOMESTEADBOT",
     "groups": {
-        "name1": {
+        "group1": {
             "clients": {
                 "discord": {
                     "defaultVoiceChannel": "000000000000000000"
@@ -51,7 +50,7 @@ These should've been given to you by your SSL provider
             ],
             "prefix": "/"
         },
-        "name2": {
+        "group2": {
             "clients": {
                 "discord": {
                     "defaultVoiceChannel": "000000000000000000"
@@ -70,9 +69,9 @@ These should've been given to you by your SSL provider
 #### credentials.json
 * **Cleverbot:** Used as a default response
 * **Cleverbot.io:** Since Cleverbot has a limited number of requests, Cleverbot.io is used as a fallback since its API is free, albeit less entertaining than the standard Cleverbot
-* **Google:** Used for general purpose Google APIs such as YouTube and Translator
+* **Google:** Used for general purpose Google APIs such as YouTube and Translate
 * **Api.ai:** AKA DialogFlow, which is used for interpreting speech loosly as commands with parameters
-* **Discord:** Used to interface with Discord's API. The config supports multiple Discord bots by assigning them to groups (name1 and name2 in this case)
+* **Discord:** Used to interface with Discord's API. The config supports multiple Discord bots by assigning them to groups (group1 and group2 in this case)
 ~~~~javascript
 {
     "actions": {
@@ -93,13 +92,13 @@ These should've been given to you by your SSL provider
         }
     },
     "clients": {
-        "name1": {
+        "group1": {
             "discord": {
                 "username": "username1#0000",
                 "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
             }
         },
-        "name2": {
+        "group2": {
             "discord": {
                 "username": "username2#0000",
                 "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
