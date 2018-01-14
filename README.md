@@ -1,5 +1,34 @@
 # homestead-bot
-Basic readme, should eventually be updated with more in depth instructions, feature list, etc.
+This is the god bot. Soon it will be ready and then it will do EVERYTHING. BlackHatGuy stands no chance.
+
+## Current Features
+* Conversation via Cleverbot
+* Youtube search
+* Music streaming
+* Google translate
+* Dice rolling
+
+## Feature Roadmap
+* Google searches
+* Image searches
+* Reddit searches
+* Meme posting
+    * Request top posts from r/dankmemes and other meme subreddits and post them
+* Playlist streaming with media control
+* Post memes
+* Reminders and timers
+* Inside jokes
+    * Map of keywords/phrases and responses
+* Shit talk to other bots
+* Storytelling
+* Text based adventures
+* Pokemon battles
+* Insults/compliments
+* Equation solving using Wolfram Alpha
+* Jibberish
+* Currency exchange
+* DnD character generator
+* Character name generator
 
 ## Setup
 ### Standard setup
