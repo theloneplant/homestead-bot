@@ -1,5 +1,5 @@
 const path = require('path');
-const ytdl = require('ytdl-core');
+const ytstream = require('youtube-audio-stream');
 const Discord = require('discord.js');
 const file = require(path.join(__dirname, '../util/file'));
 const agentHub = require(path.join(__dirname, '../agents/agentHub'));
@@ -47,6 +47,7 @@ class DiscordClient {
 				this.send(res, msg);
 			}
 			else if (res.action.streamService === 'youtube') {
+				console.log(JSON.stringify(res.action));
 				this.playYoutube(res.action.streamUrl, msg);
 			}
 		}
@@ -68,11 +69,10 @@ class DiscordClient {
 		else {
 			voiceChannel = this.discordClient.channels.get(this.defaultVoiceChannel);
 		}
-
 		voiceChannel.join().then((connection) => {
-			var stream = ytdl(streamUrl, { filter : 'audioonly' });
+			var stream = ytstream(streamUrl, { filter : 'audioonly' });
 			this.connection = connection;
-			this.dispatcher = this.connection.playStream(stream, { seek: 0, volume: 0.5 });
+			this.dispatcher = this.connection.playStream(stream, { seek: 0, volume: 0.75 });
 			this.dispatcher.setBitrate(128);
 
 			this.connection.on('error', (error) => {

@@ -1,26 +1,61 @@
 const path = require('path');
 const file = require(path.join(__dirname, '../util/file'));
+const actionHub = require(path.join(__dirname, '../actions/actionHub'));
 const apiaiAgent = require(path.join(__dirname, '../agents/apiaiAgent'));
+const randomAgent = require(path.join(__dirname, '../agents/randomAgent'));
 const config = file.read(path.join(__dirname, '../../../config/server.json'));
 
 module.exports = function() {
+	var replyAgents = [
+		apiaiAgent
+	];
+	var idleAgents = [
+		randomAgent
+	];
+
 	function interpret(req, cb) {
 		if (!req.to) {
 			if (isMentioned(req)) {
-				mapInterpret(req, cb);
+				matchAgent(replyAgents, req, (res) => {
+					actionHub.run(res, cb);
+				});
 			}
 			else {
-				// Ignore the call since the bot wasn't mentioned
-				cb();
+				matchAgent(idleAgents, req, (res) => {
+					// Only respond if there is a match
+					if (res.agent) {
+						actionHub.run(res, cb);
+					}
+				});
 			}
 		}
 		else {
-			mapInterpret(req, cb);
+			matchAgent(replyAgents, req, (res) => {
+				actionHub.run(res, cb);
+			});
 		}
 	}
 
-	function mapInterpret(req, cb) {
-		apiaiAgent.interpret(req, cb);
+	// Loops through all agents in a list and sees if the request matches an action
+	function matchAgent(list, req, done, i = 0) {
+		if (i < list.length) {
+			list[i].interpret(req, (match, res, err) => {
+				if (err) {
+					console.log('Error: Unable to interpret message "' + res.message + '"');
+					matchAgent(list, req, done, ++i);
+				}
+				if (match) {
+					done(res);
+				}
+				else {
+					matchAgent(list, req, done, ++i);
+				}
+			});
+		}
+		else {
+			// Run the default action
+			done(req);
+		}
 	}
 
 	function isMentioned(req) {
