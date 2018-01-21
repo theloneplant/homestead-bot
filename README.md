@@ -165,16 +165,7 @@ These should've been given to you by your SSL provider
             "prefix": "/"
         },
         "group2": {
-            "clients": {
-                "discord": {
-                    "defaultVoiceChannel": "000000000000000000"
-                }
-            },
-            "nicknames": [
-                "nickname1",
-                "nickname2"
-            ],
-            "prefix": "!"
+            // Similar structure to group1
         }
     }
 }
