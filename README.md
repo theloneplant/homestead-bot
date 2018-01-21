@@ -6,14 +6,14 @@ This is the god bot. Soon it will be ready and then it will do EVERYTHING. Black
 * Youtube search
 * Music streaming
 * Google translate
+* Meme posting
+    * Request top posts from r/dankmemes and other meme subreddits and post them
 * Dice rolling
 
 ## Feature Roadmap
 * Google searches
 * Image searches
 * Reddit searches
-* Meme posting
-    * Request top posts from r/dankmemes and other meme subreddits and post them
 * Playlist streaming with media control
 * Post memes
 * Reminders and timers
@@ -73,6 +73,32 @@ These should've been given to you by your SSL provider
                     "defaultVoiceChannel": "000000000000000000"
                 }
             },
+            "agents": {
+                "random": [
+                    {
+                        "action": "Cleverbot",
+                        "params": {},
+                        "chance": 0.05
+                    },
+                    {
+                        "action": "PostMeme",
+                        "params": {},
+                        "chance": 0.05
+                    }
+                ]
+            },
+            "actions": {
+                "meme": [
+                    {
+                        "subreddit": "XXXXXXXXXXXX",
+                        "weight": 0.5
+                    },
+                    {
+                        "subreddit": "XXXXXXXXXXXX",
+                        "weight": 0.5
+                    }
+                ]
+            },
             "nicknames": [
                 "nickname1",
                 "nickname2"
@@ -113,6 +139,13 @@ These should've been given to you by your SSL provider
         },
         "google": {
             "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        },
+        "reddit": {
+            "userAgent": "Any String (ex. homestead-bot)",
+            "clientId": "XXXXXXXXXXXXXXXX",
+            "clientSecret": "XXXXXXXXXXXXXXXX",
+            "username": "XXXXXXXXXXXXXXXX",
+            "password": "XXXXXXXXXXXXXXXX"
         }
     },
     "agents": {
