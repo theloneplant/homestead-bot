@@ -126,6 +126,7 @@ These should've been given to you by your SSL provider
 * **Cleverbot.io:** Since Cleverbot has a limited number of requests, Cleverbot.io is used as a fallback since its API is free, albeit less entertaining than the standard Cleverbot
 * **Google:** Used for general purpose Google APIs such as YouTube and Translate
 * **Api.ai:** AKA DialogFlow, which is used for interpreting speech loosly as commands with parameters
+* **Reddit:** Used to get posts from Reddit. Make sure to create your bot at https://www.reddit.com/prefs/apps as a script
 * **Discord:** Used to interface with Discord's API. The config supports multiple Discord bots by assigning them to groups (group1 and group2 in this case)
 ~~~~javascript
 {
