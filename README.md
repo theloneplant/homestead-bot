@@ -40,6 +40,7 @@ Currently music streaming is very barebones. It only queries YouTube, has no med
 **Command format:**
 
 "Bot play XXX"
+
 "Hey bot play XXX on youtube"
 
 ### Translate
@@ -208,13 +209,13 @@ These should've been given to you by your SSL provider
         "group1": {
             "discord": {
                 "username": "username1#0000",
-                "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
             }
         },
         "group2": {
             "discord": {
                 "username": "username2#0000",
-                "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
             }
         }
     }
