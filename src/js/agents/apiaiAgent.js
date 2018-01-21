@@ -1,14 +1,13 @@
 const path = require('path');
 const ApiAi = require('apiai');
 const file = require(path.join(__dirname, '../util/file'));
-const actionHub = require(path.join(__dirname, '../actions/actionHub'));
 const config = file.read(path.join(__dirname, '../../../config/server.json'));
 const credentials = file.read(path.join(__dirname, '../../../config/credentials.json'));
 
 module.exports = function() {
 	var apiai = ApiAi(credentials.agents.apiai.token);
 
-	function interpret(req, cb) {
+	function interpret(req, done) {
 		req.message = replaceNicknames(req);
 		var request = apiai.textRequest(req.message, {
 			sessionId: '1'
@@ -21,11 +20,16 @@ module.exports = function() {
 				'params': response.result.parameters
 			};
 			req.agent = agent;
-			actionHub.run(req, cb);
+			if (agent.action === 'input.unknown') {
+				done(false);
+			}
+			else {
+				done(true, req);
+			}
 		});
-		request.on('error', (error) => {
-			console.log('oof ouch owie');
-			cb();
+		request.on('error', (err) => {
+			console.log(err);
+			done(false, req, err);
 		});
 		request.end();
 	}
