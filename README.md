@@ -1,21 +1,80 @@
 # homestead-bot
 This is the god bot. Soon it will be ready and then it will do EVERYTHING. BlackHatGuy stands no chance.
 
+## Table of Contents
+* [Current Features](#current-features)
+  + [Cleverbot](#cleverbot)
+  + [YouTube Search](#youtube-search)
+  + [Music Streaming](#music-streaming)
+  + [Translate](#translate)
+  + [Meme Posting](#meme-posting)
+  + [Dice Rolling](#dice-rolling)
+* [Feature Roadmap](#feature-roadmap)
+* [Setup](#setup)
+  + [Standard setup](#standard-setup)
+  + [Docker setup](#docker-setup)
+  + [Configs](#configs)
+    - [server.json](#serverjson)
+    - [credentials.json](#credentialsjson)
+
 ## Current Features
-* Conversation via Cleverbot
-* Youtube search
-* Music streaming
-* Google translate
-* Meme posting
-    * Request top posts from r/dankmemes and other meme subreddits and post them
-* Dice rolling
+Note: Commands are flexible, you can word them loosly thanks to DialogFlow so you don't need to remember the exact command. Speak to the bot as if you were talking to a person.
+
+### Cleverbot
+This is the current default action. It will take whatever request you send, strip the message of nicknames/tagging and replace it with the word "you" to send to either Cleverbot or Cleverbot.io. Cleverbot.io is less entertaining, but has a completely free API which is used in case of Cleverbot running out of requests.
+
+**Command format:** Anything
+
+### YouTube Search
+This command queries YouTube for a video, channel, or playlist and posts a link to it in chat.
+
+**Command format:**
+
+"Hey bot search youtube for XXX"
+
+"Bot search for XXX on youtube"
+
+### Music Streaming
+Currently music streaming is very barebones. It only queries YouTube, has no media controls, and doesn't support playing playlists or channels. The bot will attempt to join whatever channel you are currently in. If you aren't in a voice channel, it'll attempt to connect to the group's default voice channel. To get the default voice channel, enable Developer Mode in Discord, right click on the voice channel you want, and select "Copy ID"
+
+**Command format:**
+
+"Bot play XXX"
+"Hey bot play XXX on youtube"
+
+### Translate
+This will send a message through Google Translate and give you back the translated message. By default, the bot translates messages into English if you don't specify a language to translate it into.
+
+**Command format:**
+
+"Hey bot translate XXX"
+
+"Bot translate XXX into german"
+
+### Meme Posting
+This will query Reddit for one of the subreddits you specify in the config. These subreddits can be weighted relative to each other, so a subreddit with a weight of 50 will have 2x the chance of being selected over a subreddit with a weight of 25. This will get posts made within the last 24 hours from Reddit and will attempt to find content that it hasn't posted already.
+
+**Command format:**
+
+"Bot post a meme"
+
+"Hey bot gimme a meme"
+
+### Dice Rolling
+This command rolls dice. It can roll one dice, it can roll multiple dice, it can roll dice with modifiers, if can even divide dice rolls if that's what you're into. The default roll is 1d20 and all dice rolls are in the format of dX (equivalent of 1dX) or XdX.
+
+**Command format:**
+
+"Bot roll"
+
+"Hey bot roll 3d6+5"
+
+"Bot roll 42d100 - 3 + 2d4 / 5d3" (because this is very helpful)
 
 ## Feature Roadmap
 * Google searches
 * Image searches
-* Reddit searches
 * Playlist streaming with media control
-* Post memes
 * Reminders and timers
 * Inside jokes
     * Map of keywords/phrases and responses
