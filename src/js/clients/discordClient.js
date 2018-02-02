@@ -4,6 +4,7 @@ const Discord = require('discord.js');
 const file = require(path.join(__dirname, '../util/file'));
 const agentHub = require(path.join(__dirname, '../agents/agentHub'));
 const config = file.read(path.join(__dirname, '../../../config/server.json'));
+const bing = require(path.join(__dirname, '../util/bing'));
 
 class DiscordClient {
 	constructor(group, credentials) {
@@ -47,14 +48,16 @@ class DiscordClient {
 				this.send(res, msg);
 			}
 			else if (res.action.streamService === 'youtube') {
-				console.log(JSON.stringify(res.action));
 				this.playYoutube(res.action.streamUrl, msg);
 			}
 		}
 	}
 
 	send(res, msg) {
-		var message = res.action.result.replace('*', '\\*');
+		var message = res.action.result.replace('*', '\\*')
+						.replace(/<i>|<\/i>/g, '*')
+						.replace(/<u>|<\/u>/g, '__')
+						.replace(/<b>|<strong>|<\/b>|<\/strong>/g, '**');
 		msg.channel.send(msg.author + ' ' + message);
 	}
 

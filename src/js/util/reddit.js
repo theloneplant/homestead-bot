@@ -17,14 +17,14 @@ module.exports = function() {
 		}
 	});
 
-	function getPost(subreddit, req, done, age = 'day', retry = 5) {
+	function getPost(subreddit, req, cb, age = 'day', retry = 5) {
 		reddit.top({r: subreddit, t: age}, (err, res) => {
 			if (err) {
 				if (retry > 0) {
-					getPost(subreddit, done, age, --retry);
+					getPost(subreddit, cb, age, --retry);
 				}
 				else {
-					done(null);
+					cb(null);
 					return;
 				}
 			}
@@ -38,12 +38,12 @@ module.exports = function() {
 					}
 					if (!postMap[req.client.group][id]) {
 						postMap[req.client.group][id] = post;
-						done(post);
+						cb(post);
 						return;
 					}
 				}
 				// TODO: Request more if we run out, check if at the end of the feed
-				done(null);
+				cb(null);
 				return;
 			}
 		});
