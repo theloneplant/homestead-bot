@@ -34,6 +34,33 @@ This command queries YouTube for a video, channel, or playlist and posts a link 
 
 "Bot search for XXX on youtube"
 
+### Web Search
+This command queries Bing for a link related to the search and posts a link to it in chat.
+
+**Command format:**
+
+"Hey bot search for XXX"
+
+"Bot look up XXX"
+
+### Image Search
+This command queries Bing for an image and posts a link to it in chat.
+
+**Command format:**
+
+"Hey bot search for pictures of XXX"
+
+"Bot search for XXX photos"
+
+### Release Dates
+This command queries Bing for the release date for a movie, show, game, etc. and attempts to find the release date for it. If it can't find the direct answer then it'll return a relevant web search.
+
+**Command format:**
+
+"Hey bot what's the release date for XXX"
+
+"Bot when does XXX come out"
+
 ### Music Streaming
 Currently music streaming is very barebones. It only queries YouTube, has no media controls, and doesn't support playing playlists or channels. The bot will attempt to join whatever channel you are currently in. If you aren't in a voice channel, it'll attempt to connect to the group's default voice channel. To get the default voice channel, enable Developer Mode in Discord, right click on the voice channel you want, and select "Copy ID"
 
