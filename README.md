@@ -103,8 +103,6 @@ This command rolls dice. It can roll one dice, it can roll multiple dice, it can
 "Bot roll 42d100 - 3 + 2d4 / 5d3" (because this is very helpful)
 
 ## Feature Roadmap
-* Google searches
-* Image searches
 * Playlist streaming with media control
 * Reminders and timers
 * Inside jokes
