@@ -14,8 +14,6 @@ module.exports = function() {
 		});
 		request.on('response', (response) => {
 			var agent = {
-				'type': 'apiai',
-				'output': response.output,
 				'action': response.result.action,
 				'params': response.result.parameters
 			};
@@ -38,7 +36,11 @@ module.exports = function() {
 		var nicknames = config.groups[req.client.group].nicknames;
 		var message = req.message.replace(config.botId, 'you');
 		for(var i in nicknames) {
-			message = message.replace(nicknames[i], 'you');
+			message = message.toLowerCase().replace(nicknames[i].toLowerCase(), 'you');
+		}
+		// Replace first mention since it's unnecessary
+		if (message.trim().split(' ')[0] === 'you') {
+			message = message.replace('you', '').trim();
 		}
 		return message;
 	}

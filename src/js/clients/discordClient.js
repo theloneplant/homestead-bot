@@ -11,6 +11,9 @@ class DiscordClient {
 		this.group = group;
 		this.discordClient = new Discord.Client();
 		this.discordClient.login(credentials.token);
+		this.discordClient.on('ready', msg => {
+			this.discordClient.user.setGame(config.groups[this.group].agents.command.prefix + 'help');
+		});
 		this.discordClient.on('message', msg => {
 			this.receive(msg);
 		});
@@ -45,7 +48,12 @@ class DiscordClient {
 		}
 		else if (res && res.action) {
 			if (res.action.result) {
-				this.send(res, msg);
+				if (res.action.ttl) {
+					this.sendTemp(msg, res, ttl);
+				}
+				else {
+					this.send(msg, res);
+				}
 			}
 			else if (res.action.streamService === 'youtube') {
 				this.playYoutube(res.action.streamUrl, msg);
@@ -53,12 +61,27 @@ class DiscordClient {
 		}
 	}
 
-	send(res, msg) {
+	send(msg, res) {
 		var message = res.action.result.replace('*', '\\*')
 						.replace(/<i>|<\/i>/g, '*')
 						.replace(/<u>|<\/u>/g, '__')
 						.replace(/<b>|<strong>|<\/b>|<\/strong>/g, '**');
-		msg.channel.send(msg.author + ' ' + message);
+		if (res.action.private) {
+			msg.author.send(msg.author + ' ' + message);
+			if (msg.channel.type === 'text') {
+				this.sendTemp(msg, 'I\'ve sent you a PM');
+			}
+		}
+		else {
+			msg.channel.send(msg.author + ' ' + message);
+		}
+	}
+
+	sendTemp(msg, res, timeout = 10000) {
+		var text = res && res.action && res.action.result ? res.action.result : res;
+		msg.channel.send(text).then(message => {
+			message.delete(timeout);
+		});
 	}
 
 	playYoutube(streamUrl, msg) {
@@ -66,7 +89,7 @@ class DiscordClient {
 		if (this.dispatcher) {
 			this.dispatcher.end('Playing new track');
 		}
-		if (msg.member.voiceChannel) {
+		if (msg && msg.member && msg.member.voiceChannel) {
 			voiceChannel = msg.member.voiceChannel;
 		}
 		else {

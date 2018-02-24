@@ -1,4 +1,5 @@
 const path = require('path');
+const helpAction = require(path.join(__dirname, 'helpAction'));
 const diceRollAction = require(path.join(__dirname, 'diceRollAction'));
 const youtubeAction = require(path.join(__dirname, 'youtubeAction'));
 const playMusicAction = require(path.join(__dirname, 'playMusicAction'));
@@ -10,6 +11,7 @@ const cleverbotAction = require(path.join(__dirname, 'cleverbotAction'));
 
 module.exports = function() {
 	var actionMap = {
+		'Help': helpAction,
 		'DiceRoll': diceRollAction,
 		'YouTube': youtubeAction,
 		'PlayMusic': playMusicAction,
@@ -18,7 +20,7 @@ module.exports = function() {
 		'ReleaseDate': releaseDateAction,
 		'WebSearch': webSearchAction,
 		'Cleverbot': cleverbotAction
-	}
+	};
 	var defaultAction = cleverbotAction;
 
 	function run(req, cb) {
@@ -32,7 +34,13 @@ module.exports = function() {
 		else {
 			action = defaultAction;
 		}
-		action.run(req, cb);
+		try {
+			action.run(req, cb);
+		}
+		catch(err) {
+			console.log(err);
+		}
 	}
+
 	return { run };
 }();
