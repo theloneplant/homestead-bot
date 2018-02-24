@@ -44,9 +44,13 @@ function onError(error) {
 		console.error(bind + ' is already in use');
 		process.exit(1);
 		break;
+		case 'ECONNRESET':
+		console.error(bind + ' connection has been reset');
+		process.exit(1);
 		default:
 		throw error;
 	}
+	console.error(error);
 }
 
 function onListening() {

@@ -1,7 +1,17 @@
 module.exports = function() {
-	function sendMessage(str, req, cb) {
+	function sendMessage(str, req, cb, ttl) {
 		req.action = {
-			'result': str
+			'result': str,
+			'ttl': ttl
+		};
+		cb(req);
+	}
+
+	function sendDM(str, req, cb, ttl) {
+		req.action = {
+			'result': str,
+			'private': true,
+			'ttl': ttl
 		};
 		cb(req);
 	}
@@ -11,5 +21,5 @@ module.exports = function() {
 		cb(req);
 	}
 
-	return { sendMessage, sendInfo };
+	return { sendMessage, sendDM, sendInfo };
 }();

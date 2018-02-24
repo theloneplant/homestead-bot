@@ -84,9 +84,9 @@ module.exports = function() {
 		}
 	}
 
-	function findAnswer(group, element) {
+	function findAnswer(element) {
 		try {
-			var container = element.find('.tpft .sf_tc');
+			var container = element.find('.tpft .sf_tmc .sf_tc');
 			// Strings in the header are formatted as 'TITLE · TYPE'
 			var title = container.children('div:nth-child(1)').children('div:nth-child(1)').html();
 			// Decode xml characters, remove tags, and only return the title of the result

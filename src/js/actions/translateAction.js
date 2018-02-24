@@ -11,8 +11,9 @@ module.exports = function() {
 	]);
 
 	function run(req, cb) {
+		var defaultLanguage = 'English';
 		var params = req.agent.params;
-		var language = params.language || 'en';
+		var language = params.language || defaultLanguage;
 		translate(params.message, {to: language}).then(res => {
 			action.sendMessage('Translating ' + params.message + ' to ' + params.language + ':\n' + res.text, req, cb);
 		}).catch(err => {

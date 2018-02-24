@@ -23,8 +23,6 @@ module.exports = function() {
 		for (var i = 0; i < memeList.length; i++) {
 			if (memeList[i].weight + minWeight >= rand) {
 				// TODO: Error handling
-				console.log(rand)
-				console.log(memeList[i].subreddit)
 				reddit.getPost(memeList[i].subreddit, req, (post) => {
 					action.sendMessage(post.title + '\n' + post.url, req, cb);
 				});
