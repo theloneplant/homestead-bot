@@ -6,62 +6,72 @@ const config = file.read(path.join(__dirname, '../../../config/server.json'));
 
 module.exports = function() {
 	function run(req, cb) {
-		req.action
 		var group = config.groups[req.client.group];
 		var prefix = group.agents.command.prefix;
 		var featureList = features.get(group.nicknames);
 		var feature = req.agent.params.feature;
-		var message = [];
 		if (feature && feature !== 'help' && featureList[feature]) {
-			console.log('match!');
-			var messages = [];
-			messages.push(buildMessage(prefix, featureList[feature]));
-			messages.push('\n<strong>Phrases:</strong>');
-			var phrases = featureList[feature].phrases;
-			console.log(JSON.stringify(phrases));
-			for (var i in phrases) {
-				messages.push(phrases[i]);
-			}
-			action.sendDM(messages.join('\n'), req, cb);
+			var params = buildMessage(prefix, featureList[feature]);
+			action.sendDM('', req, cb, params);
 		}
 		else {
 			var featureArr = [];
 			for (var key in featureList) {
 				if (key !== 'help') featureArr.push(key);
 			}
-			var message = buildMessage(prefix, featureList['help'], featureArr.join(', '));
-			action.sendDM(message, req, cb);
+			var params = buildMessage(prefix, featureList['help'], '<b>' + featureArr.join('</b> | <b>') + '</b>');
+			action.sendDM('', req, cb, params);
 		}
 	}
 
 	function buildMessage(prefix, feature, desc) {
-		var messages = [];
-		messages.push('<u>' + feature.name + '</u>');
-		messages.push(feature.description);
-		if (desc) {
-			messages.push(desc);
-		}
+		desc = desc ? '\n' + desc : '';
+		var embed = {};
+		embed.title = '<u>' + feature.name + '</u>';
+		embed.description = feature.description + desc + '\n\u200b';
+		embed.color = 4359924;
 		var commands = feature.commands;
+		var examples = feature.examples;
+		var phrases = feature.phrases;
 		var commandArr = [];
 		for (var i in commands) {
 			var commandStr = prefix + commands[i].command;
 			if (commands[i].params) {
 				for (var j in commands[i].params) {
-					commandStr += ' [' + commands[i].params[j] + '] ';
+					commandStr += ' [' + commands[i].params[j].name + '] ';
 				}
 			}
 			commandArr.push(commandStr);
 		}
-		if (commands && commands.length > 1) {
-			messages.push('\n<strong>Commands:</strong>');
+		embed.fields = [];
+		if (commands && commands.length > 0) {
+			var commandTitle = commands.length > 1 ? 'Commands:' : 'Command:';
+			var spacing = (examples && examples.length) || (phrases && phrases.length) > 0 ? '\n\u200b' : '';
+			embed.fields.push({
+				name: commands.length > 1 ? 'Commands:' : 'Command:',
+				value: commandArr.join('\n') + spacing
+			});
 		}
-		else if (commands && commands.length === 1) {
-			messages.push('\n<strong>Command:</strong>');
+		if (examples && examples.length > 0) {
+			var spacing = phrases && phrases.length > 0 ? '\n\u200b' : '';
+			for (var i in examples) {
+				examples[i] = prefix + examples[i];
+			}
+			embed.fields.push({
+				name: examples.length > 1 ? 'Examples:' : 'Example:',
+				value: examples.join('\n') + spacing
+			});
 		}
-		for (var i in commandArr) {
-			messages.push(commandArr[i]);
+		if (phrases && phrases.length > 0) {
+			embed.fields.push({
+				name: phrases.length > 1 ? 'Phrases:' : 'Phrase:',
+				value: phrases.join('\n') + '\n\u200b'
+			});
+			embed.footer = {
+				text: 'Phrases are flexible and can be worded in multiple ways, try it out!'
+			}
 		}
-		return messages.join('\n');
+		return { embed };
 	}
 
 	return { run };

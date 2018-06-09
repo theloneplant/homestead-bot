@@ -1,3 +1,4 @@
+#!/bin/bash
 dir=`dirname $0`
 name=`cat ${dir}/config/server.json | jq -r '.name'`
 port=`cat ${dir}/config/server.json | jq -r '.port'`

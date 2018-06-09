@@ -15,7 +15,6 @@ module.exports = function() {
 			var actionList = randomConfig.actions;
 			for (var i = 0; i < actionList.length; i++) {
 				var rand = Math.random();
-				console.log('rand: ' + rand + ' ' + actionList[i].chance);
 				if (rand <= actionList[i].chance) {
 					req.agent = {
 						'action': actionList[i].action,

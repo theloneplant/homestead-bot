@@ -18,7 +18,8 @@ module.exports = function() {
 				'params': response.result.parameters
 			};
 			req.agent = agent;
-			if (agent.action === 'input.unknown') {
+			if (agent.action === 'input.unknown' || response.result.actionIncomplete || response.result.score < 0.7) {
+				agent.action = 'input.unknown';
 				done(false);
 			}
 			else {
@@ -32,6 +33,10 @@ module.exports = function() {
 		request.end();
 	}
 
+	/**
+	 * Replaces all instances of the bot ID with "you" to improve results from the cleverbot api
+	 * @param {any} req Object containing information about this request
+	 */
 	function replaceNicknames(req) {
 		var nicknames = config.groups[req.client.group].nicknames;
 		var message = req.message.replace(config.botId, 'you');

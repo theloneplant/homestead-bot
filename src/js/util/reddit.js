@@ -1,5 +1,6 @@
 const path = require('path');
 const rawjs = require('raw.js');
+// const Database = require(path.join(__dirname, 'redis'));
 const file = require(path.join(__dirname, '../util/file'));
 const credentials = file.read(path.join(__dirname, '../../../config/credentials.json'));
 

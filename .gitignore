@@ -14,6 +14,9 @@ config/
 # Credentials
 credentials/
 
+# Database
+db/
+
 # Remote sync
 .remote-sync.json
 
