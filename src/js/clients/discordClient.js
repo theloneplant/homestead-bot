@@ -1,14 +1,17 @@
 const path = require('path');
-const ytstream = require('youtube-audio-stream');
 const Discord = require('discord.js');
+const ytstream = require('youtube-audio-stream');
 const file = require(path.join(__dirname, '../util/file'));
+const bing = require(path.join(__dirname, '../util/bing'));
+const State = require(path.join(__dirname, '../state/state'));
+const filter = require(path.join(__dirname, '../state/filter'));
 const agentHub = require(path.join(__dirname, '../agents/agentHub'));
 const config = file.read(path.join(__dirname, '../../../config/server.json'));
-const bing = require(path.join(__dirname, '../util/bing'));
 
 class DiscordClient {
 	constructor(group, credentials) {
 		this.group = group;
+		this.state = new State();
 		this.discordClient = new Discord.Client();
 		this.discordClient.login(credentials.token);
 		this.discordClient.on('ready', msg => {
@@ -27,31 +30,56 @@ class DiscordClient {
 		var from = msg.author.username + '#' + msg.author.discriminator;
 		var to = msg.isMentioned(this.discordClient.user) ? botname : null;
 		var message = msg.content.replace(/<\S*/g, config.botId);
+		console.log(filter.message(message, this.state));
 		var req = {
 			'from': from,
 			'to': to,
 			'message': message,
 			'client': {
 				'group': this.group,
+				'state': this.state.getState(),
+				'channel': {
+					'type': msg.channel.type
+				},
 				'type': 'discord'
 			}
 		};
 
-		agentHub.interpret(req, (res, err) => {
-			this.handleResponse(msg, res, err);
-		});
+		try {
+			agentHub.interpret(req, (err, res, cb) => {
+				console.log(res);
+				if (res.startTyping) {
+					msg.channel.startTyping();
+				}
+				else {
+					this.handleResponse(err, msg, res, cb);
+				}
+			});
+		}
+		catch (err) {
+			console.log(err);
+			this.send(msg, 'My brain just malfunctioned please call an ambulance');
+		}
 	}
 
-	handleResponse(msg, res, err) {
+	handleResponse(err, msg, res, cb) {
+		console.log('there');
 		if (err) {
 			console.log(err);
 		}
 		else if (res && res.action) {
-			if (res.action.result) {
-				if (res.action.ttl) {
-					this.sendTemp(msg, res, ttl);
+			console.log('here');
+			this.state.setState(res.client.state);
+			if (res.action.statusText) {
+				this.updateStatus(res.action.statusText);
+			}
+			if (res.action.text || res.action.text === '' || res.action.options) {
+				if (res.action.temp) {
+					console.log('temp');
+					this.sendTemp(msg, res);
 				}
 				else {
+					console.log('send');
 					this.send(msg, res);
 				}
 			}
@@ -62,26 +90,84 @@ class DiscordClient {
 	}
 
 	send(msg, res) {
-		var message = res.action.result.replace('*', '\\*')
-						.replace(/<i>|<\/i>/g, '*')
-						.replace(/<u>|<\/u>/g, '__')
-						.replace(/<b>|<strong>|<\/b>|<\/strong>/g, '**');
+		var message = this.replaceFormatting(res.action.text);
+		var embed = res.action.embed ? JSON.parse(this.replaceFormatting(JSON.stringify(res.action.embed))) : null;
+		message = filter.message(message, this.state);
+		embed = filter.embed(embed, this.state);
+		if (this.state.isShakespeare()) {
+			this.discordClient.user.setGame(config.groups[this.group].agents.command.prefix + 'helpeth');
+		}
+		console.log(embed);
+		var options = { embed };
+		console.log(options);
 		if (res.action.private) {
-			msg.author.send(msg.author + ' ' + message);
+			msg.author.send(message, options).then((msg) => {
+				this.onSend(res, msg);
+			}).catch(console.log);
 			if (msg.channel.type === 'text') {
 				this.sendTemp(msg, 'I\'ve sent you a PM');
 			}
 		}
 		else {
-			msg.channel.send(msg.author + ' ' + message);
+			msg.channel.send(msg.author + ' ' + message, options).then((msg) => {
+				setTimeout(() => {
+					msg.channel.stopTyping();
+				}, 100);
+				this.onSend(res, msg);
+			}).catch(console.log);
 		}
 	}
 
-	sendTemp(msg, res, timeout = 10000) {
-		var text = res && res.action && res.action.result ? res.action.result : res;
-		msg.channel.send(text).then(message => {
+	sendTemp(msg, res, options, timeout = 10000) {
+		var text = res && res.action && res.action.text ? res.action.text : res;
+		text = filter.message(text, this.state);
+		console.log('options');
+		console.log(options);
+		msg.channel.send(text, options).then(message => {
+			msg.channel.stopTyping();
 			message.delete(timeout);
 		});
+	}
+
+	updateStatus(statusText, retry = 5) {
+		console.log('updating status')
+		if (retry <= 0) return;
+		if (statusText) {
+			this.discordClient.user.setPresence({
+				game: { name: statusText },
+				status: 'online'
+			}).catch((err) => {
+				console.log(err);
+				this.updateStatus(statusText, --retry);
+			});
+		}
+	}
+
+	onSend(res, msg) {
+		console.log('hello world')
+		if (res && res.action && res.action.emotes && res.action.emotes.length > 0) {
+			console.log('res.action.emotes')
+			console.log(typeof res.action.emotes[0])
+			msg.react(res.action.emotes[0]).then(() => {
+				res.action.emotes = res.action.emotes.slice(1);
+				this.onSend(res, msg);
+			}).catch((err) => {
+				console.log(err);
+				if (res.action.cb) res.action.cb(err);
+			});
+		}
+		else {
+			console.log('success')
+			if (res.action.cb) res.action.cb();
+		}
+	}
+
+	replaceFormatting(text) {
+		return text.replace('*', '\\*')
+			.replace(/<i.*?>|<\/i>/g, '*')
+			.replace(/<u.*?>|<\/u>/g, '__')
+			.replace(/<b.*?>|<strong>|<\/b>|<\/strong>/g, '**')
+			.replace(/<script.*?>|<\/script>/g, '```');
 	}
 
 	playYoutube(streamUrl, msg) {

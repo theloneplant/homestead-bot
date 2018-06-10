@@ -3,6 +3,7 @@ const file = require(path.join(__dirname, '../util/file'));
 const actionHub = require(path.join(__dirname, '../actions/actionHub'));
 const apiaiAgent = require(path.join(__dirname, '../agents/apiaiAgent'));
 const commandAgent = require(path.join(__dirname, '../agents/commandAgent'));
+const dadAgent = require(path.join(__dirname, '../agents/dadAgent'));
 const randomAgent = require(path.join(__dirname, '../agents/randomAgent'));
 const config = file.read(path.join(__dirname, '../../../config/server.json'));
 
@@ -12,6 +13,7 @@ module.exports = function() {
 		apiaiAgent
 	];
 	var idleAgents = [
+		dadAgent,
 		randomAgent
 	];
 
@@ -19,6 +21,8 @@ module.exports = function() {
 		try {
 			if (!req.to) {
 				if (isMentioned(req)) {
+					var res = { 'startTyping': true };
+					cb(null, res);
 					matchAgent(replyAgents, req, (res) => {
 						actionHub.run(res, cb);
 					});
@@ -67,7 +71,7 @@ module.exports = function() {
 	}
 
 	function isMentioned(req) {
-		var msgArr = req.message.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '').split(/\s/g);
+		var msgArr = req.message.replace(/[.,\/@#!$%\^&\*;:{}=\-_`~()]/g, '').split(/\s/g);
 		var nicknames = config.groups[req.client.group].nicknames;
 		var prefix = config.groups[req.client.group].agents.command.prefix;
 		if (req.message[0] === prefix) {

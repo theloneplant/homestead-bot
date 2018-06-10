@@ -14,7 +14,7 @@ module.exports = function() {
 
 	function run(req, cb) {
 		var search = req.agent.params.search;
-		youTube.search(search, (type, url, err) => {
+		youTube.search(search, (err, type, url) => {
 			if (err) {
 				console.log(err);
 				action.sendMessage(error.randomError(), req, cb);

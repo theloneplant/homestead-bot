@@ -12,7 +12,7 @@ module.exports = function() {
 			var commands = features.getCommands();
 			for (var i in commands) {
 				if (messageArray[0] === commands[i].command) {
-					var params = getParams(messageArray, commands[i]);
+					var params = getParams(messageArray.slice(1).join(' '), commands[i]);
 					req.agent = {
 						'action': commands[i].action,
 						'params': params
@@ -25,19 +25,76 @@ module.exports = function() {
 		done(false);
 	}
 
-	function getParams(messageArray, command) {
+	function getParams(message, command) {
 		var result = {};
 		if (!command) return null;
-		if (command.params && messageArray.length > command.params.length) {
-			for (var i = 0; i < command.params.length - 1; i++) {
-				result[command.params[i]] = messageArray[i + 1];
+		if (message && command.params) {
+			for (var i in command.params) {
+				var type = features.getType(command.params[i].type);
+				var name = command.params[i].name
+				if (message.length === 0) break;
+				console.log('CRAAAAAWLING IN MY SKIIIN')
+				if (type === 'default') {
+					console.log('default')
+					console.log(command.params.length)
+					console.log(i++)
+					if (i++ === command.params.length) {
+						// Last param, get remaining string
+						console.log('remaining string')
+						result[name] = message;
+						message = '';
+					}
+					else {
+						// Get single word
+						console.log('only one word')
+						message = message.split(' ');
+						result[name] = message[0];
+						message = message.slice(1).join(' ');
+					}
+				}
+				else if (type === 'phrase') {
+					if (message[0].match(/["“”]/g)) {
+						// If first character is quote, look for matching quote/remaining message
+						var array = message.match(/["“”].*?["“”]/g);
+						if (array.length === 0) {
+							result[name] = message.replace(/["“”]/g, '');
+							message = '';
+						}
+						else {
+							result[name] = array[0].replace(/["“”]/g, '');
+							message = message.replace(/["“”].*?["“”]\s*/, '');
+						}
+					}
+					else {
+						// Match remaining message
+						result[name] = message;
+						message = '';
+					}
+				}
+				else if (type === 'array') {
+					if (message[0].match(/["“”]/g)) {
+						// Match remaining message as phrases
+						var arr = message.match(/["“”].*?["“”]/g);
+						for (var i in arr) {
+							arr[i] = arr[i].replace(/["“”]/g, '');
+						}
+						result[name] = arr;
+						message = '';
+					}
+					else {
+						// Match remaining message as defaults
+						result[name] = message.split(' ');
+						message = '';
+					}
+				}
+				else {
+					return null;
+				}
 			}
-			var remainingStr = messageArray.slice(command.params.length).join(' ');
-			result[command.params[command.params.length - 1]] = remainingStr;
 		}
 		if (command.constants) {
-			for (var key in command.constants) {
-				result[key] = command.constants[key];
+			for (var i in command.constants) {
+				result[command.constants[i].name] = command.constants[i].value;
 			}
 		}
 		return result;

@@ -1,25 +1,43 @@
 module.exports = function() {
-	function sendMessage(str, req, cb, ttl) {
+	var features = {
+		'discord': {
+			'embed': true
+		}
+	};
+
+	function sendMessage(text, req, cb, params = {}, updateCB) {
 		req.action = {
-			'result': str,
-			'ttl': ttl
+			'text': text,
+			'temp': params.temp,
+			'embed': params.embed,
+			'code': params.code,
+			'statusText': params.statusText,
+			'emotes': params.emotes
 		};
-		cb(req);
+		cb(null, req, updateCB);
 	}
 
-	function sendDM(str, req, cb, ttl) {
+	function sendDM(text, req, cb, params = {}, updateCB) {
 		req.action = {
-			'result': str,
+			'text': text,
 			'private': true,
-			'ttl': ttl
+			'temp': params.temp,
+			'embed': params.embed,
+			'code': params.code,
+			'statusText': params.statusText,
+			'emotes': params.emotes
 		};
-		cb(req);
+		cb(null, req, updateCB);
 	}
 
-	function sendInfo(info, req, cb) {
+	function sendInfo(info, req, cb, updateCB) {
 		req.action = info;
-		cb(req);
+		cb(null, req, updateCB);
 	}
 
-	return { sendMessage, sendDM, sendInfo };
+	function getTextFeatures(type) {
+		return features[type];
+	}
+
+	return { sendMessage, sendDM, sendInfo, getTextFeatures };
 }();

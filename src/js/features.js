@@ -5,6 +5,19 @@ const config = file.read(path.join(__dirname, '../../config/server.json'));
 
 module.exports = function() {
 	var id = config.botId;
+
+	/**
+	 * Types of params supported by the bot, each are parsed in different ways
+	 */
+	var type = {
+		'default': 0, // single word, or takes remaining line if final param
+		'phrase': 1, // formatted as "multiple words can go here"
+		'array': 2 // formatted as "phrase1" "phrase2" "phrase3"... or default default default...
+	}
+
+	/**
+	 * List of all features supported by the bot, used to build help messages and commands
+	 */
 	var features = {
 		'help': {
 			'name': 'Help',
@@ -13,7 +26,12 @@ module.exports = function() {
 			'commands': [
 				{
 					'command': 'help',
-					'params': ['feature']
+					'params': [{'name': 'feature', 'type': type.default}]
+				},
+				{
+					'command': 'helpeth',
+					'params': [{'name': 'feature', 'type': type.default}],
+					'ignore': true
 				}
 			]
 		},
@@ -24,12 +42,22 @@ module.exports = function() {
 			'commands': [
 				{
 					'command': 'roll',
-					'params': ['roll']
+					'params': [{'name': 'roll', 'type': type.default}]
 				}
 			],
 			'phrases': [
 				id + ' roll',
 				'Hey ' + id + ' roll 3d6 + d4 - 1',
+			]
+		},
+		'coinflip': {
+			'name': 'Coin Flip',
+			'description': 'Flips a coin, it\'s pretty straightforward. Heads or tails?',
+			'action': 'CoinFlip',
+			'commands': [{ 'command': 'flip' }, { 'command': 'coinflip' }],
+			'phrases': [
+				id + ' flip a coin',
+				'Hey ' + id + ' do a coin flip',
 			]
 		},
 		'youtube': {
@@ -39,11 +67,11 @@ module.exports = function() {
 			'commands': [
 				{
 					'command': 'youtube',
-					'params': ['search']
+					'params': [{'name': 'search', 'type': type.default}]
 				},
 				{
 					'command': 'video',
-					'params': ['search']
+					'params': [{'name': 'search', 'type': type.default}]
 				}
 			],
 			'phrases': [
@@ -58,38 +86,28 @@ module.exports = function() {
 			'commands': [
 				{
 					'command': 'play',
-					'params': ['search']
+					'params': [{'name': 'search', 'type': type.default}]
 				}
 			],
 			'phrases': [
-				id + ' play [search]',
-				'Hey ' + id + ' play [search] on YouTube'
+				id + ' play Flight of the Valkyrie',
+				'Hey ' + id + ' play Imperial March on YouTube'
 			]
 		},
 		'translate': {
 			'name': 'Translate',
 			'description': 'Translates text into the desired language (English is default)',
 			'action': 'Translate',
-			'commands': [
-				{
-					'command': 'translate',
-					'params': ['language', 'message']
-				}
-			],
 			'phrases': [
-				id + ' search YouTube for [search]',
-				'Hey ' + id + ' look up [search] on YouTube'
+				id + ' translate hello to German',
+				'Hey ' + id + ' translate お前はもう死んでいる'
 			]
 		},
 		'meme': {
 			'name': 'Meme Posting',
 			'description': 'Posts a dank meme',
 			'action': 'PostMeme',
-			'commands': [
-				{
-					'command': 'meme'
-				}
-			],
+			'commands': [{ 'command': 'meme' }],
 			'phrases': [
 				id + ' post a meme',
 				'Hey ' + id + ' gimme a meme'
@@ -102,7 +120,7 @@ module.exports = function() {
 			'commands': [
 				{
 					'command': 'release',
-					'params': ['search']
+					'params': [{'name': 'search', 'type': type.default}]
 				}
 			],
 			'phrases': [
@@ -117,14 +135,12 @@ module.exports = function() {
 			'commands': [
 				{
 					'command': 'search',
-					'params': ['search']
+					'params': [{'name': 'search', 'type': type.default}]
 				},
 				{
 					'command': 'image',
-					'params': ['search'],
-					'constants': {
-						'type': 'Image'
-					}
+					'params': [{'name': 'search', 'type': type.default}],
+					'constants': [{'name': 'type', 'value': 'image'}]
 				}
 			],
 			'phrases': [
@@ -132,10 +148,66 @@ module.exports = function() {
 				'Hey ' + id + ' look up pictures of dogs'
 			]
 		},
+		'poll': {
+			'name': 'Create a Poll',
+			'description': 'Creates a poll using reactions. You can specify answers, which can either be multiple "phrases surrounded in quotes" or individual words. You can ask yes/no questions by only specifying a question.',
+			'action': 'Poll',
+			'commands': [
+				{
+					'command': 'poll',
+					'params': [
+						{'name': 'question', 'type': type.phrase},
+						{'name': 'answers', 'type': type.array}
+					]
+				}
+			],
+			'examples': [
+				'poll "How was your day?" "Great!" "Pretty good" "Not good" "Horrible"',
+				'poll "What\'s the best fruit?" Apple Banana Orange Tomato',
+				'poll Is this a yes or no question?'
+			]
+		},
+		'game': {
+			'name': 'Public Service Announcement',
+			'description': 'Updates the bot\'s status to to given message.',
+			'action': 'Game',
+			'commands': [
+				{
+					'command': 'game',
+					'params': [{'name': 'message', 'type': type.default}]
+				},
+				{
+					'command': 'psa',
+					'params': [{ 'name': 'message', 'type': type.default }]
+				}
+			],
+			'examples': [
+				'game Super Mario World'
+			]
+		},
+		'shakespeare': {
+			'name': 'Shakespeare Mode',
+			'description': 'Changes the way that the bot speaks to reply as if from a Shakespearean play. This behaves as a toggle and can turn this mode on and off.',
+			'action': 'State',
+			'commands': [{
+					'command': 'shakespeare',
+					'constants': [{'name': 'shakespeare', 'value': true}]
+				}
+			],
+			'examples': [
+				'shakespeare'
+			]
+		},
 		'chat': {
 			'name': 'Chat/Conversation',
-			'description': 'Have a friendly and sometimes sensual conversation\n/[message]',
+			'description': 'Have a friendly and sometimes sensual conversation',
 			'action': 'Cleverbot',
+			'commands': [
+				{
+					'command': '',
+					'params': [{'name': 'search', 'type': type.default}]
+				}
+			],
 			'phrases': [
 				id + ' how are you?',
 				'Hey ' + id + ' you\'re dumb.'
@@ -143,12 +215,16 @@ module.exports = function() {
 		}
 	};
 
+	/**
+	 * Returns the feature map with all mentions of botID replaced by a random nickname
+	 * @param nicknames List of nicknames to choose from for replacing botID
+	 */
 	function get(nicknames) {
 		if (nicknames) {
 			var featureStr = JSON.stringify(features);
 			featureStr = featureStr.replace(new RegExp(id, 'g'), (match) => {
 				var i = math.randomInt(0, nicknames.length - 1);
-				return nicknames[i].charAt(0).toUpperCase() + nicknames[i].slice(1);;
+				return nicknames[i].charAt(0).toUpperCase() + nicknames[i].slice(1);
 			});
 			return JSON.parse(featureStr);
 		}
@@ -157,6 +233,9 @@ module.exports = function() {
 		}
 	}
 
+	/**
+	 * Returns a map of all commands from the feature map using action names as keys
+	 */
 	function getCommands() {
 		var commands = [];
 		for (var key in features) {
@@ -170,5 +249,18 @@ module.exports = function() {
 		}
 		return commands;
 	}
-	return { get, getCommands };
+
+	/**
+	 * Returns the type of param associated with its value
+	 * @param value Number to search for inside of types map
+	 */
+	function getType(value) {
+		for (var key in type) {
+			if (type[key] === value) {
+				return key;
+			}
+		}
+		return null;
+	}
+	return { get, getCommands, getType };
 }();

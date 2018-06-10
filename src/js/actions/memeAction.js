@@ -24,7 +24,14 @@ module.exports = function() {
 			if (memeList[i].weight + minWeight >= rand) {
 				// TODO: Error handling
 				reddit.getPost(memeList[i].subreddit, req, (post) => {
-					action.sendMessage(post.title + '\n' + post.url, req, cb);
+					var embed = {
+						title: post.title,
+						url: post.url,
+						image: {
+							url: post.url
+						}
+					}
+					action.sendMessage('', req, cb, { embed });
 				});
 				break;
 			}

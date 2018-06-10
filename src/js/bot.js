@@ -10,9 +10,7 @@ module.exports = function() {
 	function start() {
 		for (var key in config.groups) {
 			if (config.groups.hasOwnProperty(key)) {
-				var group = config.groups[key];
-
-				for (var clientKey in group.clients) {
+				for (var clientKey in config.groups[key].clients) {
 					if (clientKey === 'discord') {
 						clients.push(new DiscordClient(key, credentials.clients[key][clientKey]));
 					}

@@ -3,34 +3,53 @@ const http = require('http');
 const https = require('https');
 const express = require('express');
 const path = require('path');
+const redis = require(path.join(__dirname, 'src/js/util/redis'));
 const file = require(path.join(__dirname, 'src/js/util/file'));
+const cluster = require('cluster');
 const homesteadBot = require(path.join(__dirname, 'src/js/bot'));
 const config = file.read(path.join(__dirname, 'config/server.json'));
 const port = process.env.PORT || config.port;
 
-homesteadBot.start();
-
-var app = express();
-var server, options;
-
-try {
-	options = {
-		key: file.read(path.join(__dirname, 'ssl/ssl.key')),
-		cert: file.read(path.join(__dirname, 'ssl/ssl.crt')),
-		ca: file.read (path.join(__dirname, 'ssl/ssl.ca-bundle'))
-	};
-	server = https.createServer(options, app);
+if (cluster.isMaster) {
+	console.log("Starting master");
+	cluster.fork();
+	cluster.on('exit', (worker) => {
+		console.log('Worker ' + worker.id + ' died');
+		cluster.fork();
+	});
 }
-catch(err) {
-	console.log('Unable to use HTTPS, falling back to HTTP');
-	server = http.createServer(app);
+else {
+	console.log("Starting child");
+	var app = express();
+	var server, options;
+
+	app.use('/images', express.static(path.join(__dirname, 'src/static/images')));
+
+	try {
+		options = {
+			key: file.read(path.join(__dirname, 'ssl/ssl.key')),
+			cert: file.read(path.join(__dirname, 'ssl/ssl.crt')),
+			ca: file.read (path.join(__dirname, 'ssl/ssl.ca-bundle'))
+		};
+		server = https.createServer(options, app);
+	}
+	catch(err) {
+		console.log('Unable to use HTTPS, falling back to HTTP');
+		server = http.createServer(app);
+	}
+
+	server.listen(port);
+	server.on('error', onError);
+	server.on('listening', onListening);
+
+	app.set('port', port);
+	app.get('*', function(req, res, next) {
+		console.log(req.url)
+		!req.secure ? res.redirect('https://' + req.hostname + req.url) : next();
+	});
+
+	homesteadBot.start();
 }
-
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
-
-app.set('port', port);
 
 function onError(error) {
 	if (error.syscall !== 'listen') throw error;
