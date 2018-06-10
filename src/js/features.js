@@ -27,6 +27,11 @@ module.exports = function() {
 				{
 					'command': 'help',
 					'params': [{'name': 'feature', 'type': type.default}]
+				},
+				{
+					'command': 'helpeth',
+					'params': [{'name': 'feature', 'type': type.default}],
+					'ignore': true
 				}
 			]
 		},
@@ -178,6 +183,19 @@ module.exports = function() {
 			],
 			'examples': [
 				'game Super Mario World'
+			]
+		},
+		'shakespeare': {
+			'name': 'Shakespeare Mode',
+			'description': 'Changes the way that the bot speaks to reply as if from a Shakespearean play. This behaves as a toggle and can turn this mode on and off.',
+			'action': 'State',
+			'commands': [{
+					'command': 'shakespeare',
+					'constants': [{'name': 'shakespeare', 'value': true}]
+				}
+			],
+			'examples': [
+				'shakespeare'
 			]
 		},
 		'chat': {

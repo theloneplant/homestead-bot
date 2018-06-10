@@ -32,8 +32,8 @@ module.exports = function() {
 				'title': question,
 				'description': messageArray.join('\n'),
 				'color': 11360442,
-				"footer": {
-					"text": "Vote by reacting!"
+				'footer': {
+					'text': 'Vote by reacting!'
 				}
 			},
 			'emotes': emoteArray

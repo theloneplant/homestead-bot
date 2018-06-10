@@ -8,6 +8,7 @@ const translateAction = require(path.join(__dirname, 'translateAction'));
 const memeAction = require(path.join(__dirname, 'memeAction'));
 const releaseDateAction = require(path.join(__dirname, 'releaseDateAction'));
 const sendMessageAction = require(path.join(__dirname, 'sendMessageAction'));
+const stateAction = require(path.join(__dirname, 'stateAction'));
 const webSearchAction = require(path.join(__dirname, 'webSearchAction'));
 const pollAction = require(path.join(__dirname, 'pollAction'));
 const gameAction = require(path.join(__dirname, 'gameAction'));
@@ -24,6 +25,7 @@ module.exports = function() {
 		'PostMeme': memeAction,
 		'ReleaseDate': releaseDateAction,
 		'SendMessage': sendMessageAction,
+		'State': stateAction,
 		'WebSearch': webSearchAction,
 		'Poll': pollAction,
 		'Game': gameAction,

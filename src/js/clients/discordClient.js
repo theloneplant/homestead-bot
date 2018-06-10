@@ -1,14 +1,17 @@
 const path = require('path');
-const ytstream = require('youtube-audio-stream');
 const Discord = require('discord.js');
+const ytstream = require('youtube-audio-stream');
 const file = require(path.join(__dirname, '../util/file'));
+const bing = require(path.join(__dirname, '../util/bing'));
+const State = require(path.join(__dirname, '../state/state'));
+const filter = require(path.join(__dirname, '../state/filter'));
 const agentHub = require(path.join(__dirname, '../agents/agentHub'));
 const config = file.read(path.join(__dirname, '../../../config/server.json'));
-const bing = require(path.join(__dirname, '../util/bing'));
 
 class DiscordClient {
 	constructor(group, credentials) {
 		this.group = group;
+		this.state = new State();
 		this.discordClient = new Discord.Client();
 		this.discordClient.login(credentials.token);
 		this.discordClient.on('ready', msg => {
@@ -27,12 +30,14 @@ class DiscordClient {
 		var from = msg.author.username + '#' + msg.author.discriminator;
 		var to = msg.isMentioned(this.discordClient.user) ? botname : null;
 		var message = msg.content.replace(/<\S*/g, config.botId);
+		console.log(filter.message(message, this.state));
 		var req = {
 			'from': from,
 			'to': to,
 			'message': message,
 			'client': {
 				'group': this.group,
+				'state': this.state.getState(),
 				'channel': {
 					'type': msg.channel.type
 				},
@@ -64,6 +69,7 @@ class DiscordClient {
 		}
 		else if (res && res.action) {
 			console.log('here');
+			this.state.setState(res.client.state);
 			if (res.action.statusText) {
 				this.updateStatus(res.action.statusText);
 			}
@@ -86,6 +92,11 @@ class DiscordClient {
 	send(msg, res) {
 		var message = this.replaceFormatting(res.action.text);
 		var embed = res.action.embed ? JSON.parse(this.replaceFormatting(JSON.stringify(res.action.embed))) : null;
+		message = filter.message(message, this.state);
+		embed = filter.embed(embed, this.state);
+		if (this.state.isShakespeare()) {
+			this.discordClient.user.setGame(config.groups[this.group].agents.command.prefix + 'helpeth');
+		}
 		console.log(embed);
 		var options = { embed };
 		console.log(options);
@@ -99,7 +110,9 @@ class DiscordClient {
 		}
 		else {
 			msg.channel.send(msg.author + ' ' + message, options).then((msg) => {
-				msg.channel.stopTyping();
+				setTimeout(() => {
+					msg.channel.stopTyping();
+				}, 100);
 				this.onSend(res, msg);
 			}).catch(console.log);
 		}
@@ -107,6 +120,7 @@ class DiscordClient {
 
 	sendTemp(msg, res, options, timeout = 10000) {
 		var text = res && res.action && res.action.text ? res.action.text : res;
+		text = filter.message(text, this.state);
 		console.log('options');
 		console.log(options);
 		msg.channel.send(text, options).then(message => {

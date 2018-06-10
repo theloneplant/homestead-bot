@@ -35,13 +35,15 @@ module.exports = function() {
 		var phrases = feature.phrases;
 		var commandArr = [];
 		for (var i in commands) {
-			var commandStr = prefix + commands[i].command;
-			if (commands[i].params) {
-				for (var j in commands[i].params) {
-					commandStr += ' [' + commands[i].params[j].name + '] ';
+			if (!commands[i].ignore) {
+				var commandStr = prefix + commands[i].command;
+				if (commands[i].params) {
+					for (var j in commands[i].params) {
+						commandStr += ' [' + commands[i].params[j].name + '] ';
+					}
 				}
+				commandArr.push(commandStr);
 			}
-			commandArr.push(commandStr);
 		}
 		embed.fields = [];
 		if (commands && commands.length > 0) {
