@@ -2,7 +2,6 @@ const path = require('path');
 const Discord = require('discord.js');
 const ytstream = require('youtube-audio-stream');
 const file = require(path.join(__dirname, '../util/file'));
-const bing = require(path.join(__dirname, '../util/bing'));
 const State = require(path.join(__dirname, '../state/state'));
 const filter = require(path.join(__dirname, '../state/filter'));
 const agentHub = require(path.join(__dirname, '../agents/agentHub'));
@@ -22,6 +21,13 @@ class DiscordClient {
 		});
 		this.defaultVoiceChannel = config.groups[this.group].clients.discord.defaultVoiceChannel;
 		console.log('Created discord client for ' + group);
+		try {
+			console.log(store.get('name', 'key'))
+			console.log('no error')
+		}
+		catch(err) {
+			console.log('got an error: ' + err)
+		}
 	}
 
 	receive(msg) {
@@ -49,6 +55,7 @@ class DiscordClient {
 			agentHub.interpret(req, (err, res, cb) => {
 				console.log(res);
 				if (res.startTyping) {
+					clearTimeout(this.typeTimeout);
 					msg.channel.startTyping();
 				}
 				else {
@@ -110,12 +117,17 @@ class DiscordClient {
 		}
 		else {
 			msg.channel.send(msg.author + ' ' + message, options).then((msg) => {
-				setTimeout(() => {
-					msg.channel.stopTyping();
-				}, 100);
+				this.stopTyping(msg);
 				this.onSend(res, msg);
 			}).catch(console.log);
 		}
+	}
+
+	stopTyping(msg, retry = 5) {
+		msg.channel.stopTyping();
+		this.typeTimeout = setTimeout(() => {
+			this.stopTyping(msg, --retry);
+		}, 200);
 	}
 
 	sendTemp(msg, res, options, timeout = 10000) {
