@@ -10,9 +10,7 @@ module.exports = function() {
 	cbot.configure({ botapi: credentials.actions.cleverbot.token });
 
 	function run(req, cb) {
-		console.log('starting cleverbot')
 		cbot.write(req.message, (response) => {
-			console.log('finished cleverbot')
 			if (response && response.output) {
 				action.sendMessage(response.output, req, cb);
 			}

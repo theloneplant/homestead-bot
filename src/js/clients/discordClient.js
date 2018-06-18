@@ -21,13 +21,6 @@ class DiscordClient {
 		});
 		this.defaultVoiceChannel = config.groups[this.group].clients.discord.defaultVoiceChannel;
 		console.log('Created discord client for ' + group);
-		try {
-			console.log(store.get('name', 'key'))
-			console.log('no error')
-		}
-		catch(err) {
-			console.log('got an error: ' + err)
-		}
 	}
 
 	receive(msg) {
