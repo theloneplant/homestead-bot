@@ -15,13 +15,13 @@ module.exports = function () {
     function translate(message, cb) {
         if (!message) return;
         var converted = message;
-        for (var key in config.endsWith) {
-            var regex = new RegExp(key + '\\b', 'gmi');
-            converted = converted.replace(regex, config.endsWith[key]);
-        }
         for (var key in config.replacePriority) {
             var regex = new RegExp('\\b' + key + '\\b', 'gmi');
             converted = converted.replace(regex, config.replacePriority[key]);
+        }
+        for (var key in config.endsWith) {
+            var regex = new RegExp(key + '\\b', 'gmi');
+            converted = converted.replace(regex, config.endsWith[key]);
         }
         for (var key in config.replace) {
             var regex = new RegExp('\\b' + key + '\\b', 'gmi');
