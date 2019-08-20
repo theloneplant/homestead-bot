@@ -29,24 +29,18 @@ module.exports = function() {
 		var result = {};
 		if (!command) return null;
 		if (message && command.params) {
-			for (var i in command.params) {
+			for (var i = 0; i < command.params.length; i++) {
 				var type = features.getType(command.params[i].type);
 				var name = command.params[i].name
 				if (message.length === 0) break;
-				console.log('CRAAAAAWLING IN MY SKIIIN')
 				if (type === 'default') {
-					console.log('default')
-					console.log(command.params.length)
-					console.log(i++)
-					if (i++ === command.params.length) {
+					if (i + 1 === command.params.length) {
 						// Last param, get remaining string
-						console.log('remaining string')
 						result[name] = message;
 						message = '';
 					}
 					else {
 						// Get single word
-						console.log('only one word')
 						message = message.split(' ');
 						result[name] = message[0];
 						message = message.slice(1).join(' ');

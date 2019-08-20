@@ -1,5 +1,6 @@
 const path = require('path');
 const shakespeare = require(path.join(__dirname, '../util/shakespeare'));
+const owo = require(path.join(__dirname, '../util/owo'));
 
 module.exports = function () {
     function message(message, state) {
@@ -39,8 +40,13 @@ module.exports = function () {
     function filter(str, state) {
         if (!str) return '';
         var filtered = str;
+        console.log(filtered);
         if (state.isShakespeare()) {
             filtered = shakespeare.translate(filtered);
+        }
+        console.log(filtered);
+        if (state.isOWO()) {
+            filtered = owo.translate(filtered);
         }
         console.log(filtered);
         return filtered;

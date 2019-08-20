@@ -49,15 +49,30 @@ module.exports = function() {
 					}
 					if (!groupPosts[id]) {
 						groupPosts[id] = post;
-						store.set(posts, req.client.group, groupPosts, 1000 * 60 * 60 * 24);
+						var DAY_IN_MS = 1000 * 60 * 60 * 24;
+						var time = DAY_IN_MS;
+						if (age === 'week') {
+							time *= 7;
+						}
+						else if (time === 'month') {
+							time *= 30;
+						}
+						else if (time === 'year') {
+							time *= 365;
+						}
+						else if (time === 'all') {
+							time *= 365;
+						}
+						store.set(posts, req.client.group, groupPosts, time);
 						store.save(posts);
 						cb(post);
 						return;
 					}
 				}
-				// TODO: Request more if we run out, check if at the end of the feed
-				cb(undefined);
-				return;
+				// Reset store if we run out of posts and start returning old posts
+				store.set(posts, req.client.group, {});
+				store.save(posts);
+				getPost(subreddit, req, cb, age);
 			}
 		});
 	}

@@ -1,10 +1,13 @@
 const path = require('path');
 const helpAction = require(path.join(__dirname, 'helpAction'));
+const bobRossAction = require(path.join(__dirname, 'bobRossAction'));
 const diceRollAction = require(path.join(__dirname, 'diceRollAction'));
 const coinFlipAction = require(path.join(__dirname, 'coinFlipAction'));
 const youtubeAction = require(path.join(__dirname, 'youtubeAction'));
 const playMusicAction = require(path.join(__dirname, 'playMusicAction'));
 const translateAction = require(path.join(__dirname, 'translateAction'));
+const redditAction = require(path.join(__dirname, 'redditAction'));
+const mediaControlAction = require(path.join(__dirname, 'mediaControlAction'));
 const memeAction = require(path.join(__dirname, 'memeAction'));
 const releaseDateAction = require(path.join(__dirname, 'releaseDateAction'));
 const sendMessageAction = require(path.join(__dirname, 'sendMessageAction'));
@@ -17,11 +20,14 @@ const cleverbotAction = require(path.join(__dirname, 'cleverbotAction'));
 module.exports = function() {
 	var actionMap = {
 		'Help': helpAction,
+		'BobRoss': bobRossAction,
 		'DiceRoll': diceRollAction,
 		'CoinFlip': coinFlipAction,
 		'YouTube': youtubeAction,
 		'PlayMusic': playMusicAction,
 		'Translate': translateAction,
+		'PostReddit': redditAction,
+		'MediaControl': playMusicAction,
 		'PostMeme': memeAction,
 		'ReleaseDate': releaseDateAction,
 		'SendMessage': sendMessageAction,

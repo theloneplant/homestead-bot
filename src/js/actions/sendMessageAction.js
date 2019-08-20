@@ -12,11 +12,14 @@ module.exports = function() {
 	function run(req, cb) {
 		var params = req.agent.params;
 		if (params && params.message) {
+			var msgParams = {
+				'targetUser': params.targetUser
+			};
 			if (params.private) {
-				action.sendDM(params.message, req, cb);
+				action.sendDM(params.message, req, cb, msgParams);
 			}
 			else {
-				action.sendMessage(params.message, req, cb);
+				action.sendMessage(params.message, req, cb, msgParams);
 			}
 		}
 		else {

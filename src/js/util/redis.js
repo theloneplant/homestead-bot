@@ -50,6 +50,13 @@ module.exports = function() {
         client.hset(namespace, field, JSON.stringify(value), cb);
     }
 
+    function getKeys(namespace, cb) {
+        if (!namespaces[namespace]) {
+            init(namespace);
+        }
+        client.hkeys(namespace, cb);
+    }
+
     function getUser(platform, userID, cb) {
         getJson('users', concatKey(platform, userID), cb);
     }
@@ -63,5 +70,5 @@ module.exports = function() {
         return Array.from(arguments).join('.');
     }
 
-    return { init, getJson, setJson, getUser, setUser };
+    return { init, getJson, setJson, getKeys, getUser, setUser };
 }();
