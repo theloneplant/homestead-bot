@@ -1,7 +1,4 @@
 const path = require('path');
-const ytstream = require('youtube-audio-stream');
-const Discord = require('discord.js');
-const file = require(path.join(__dirname, '../util/file'));
 
 class State {
     constructor() {
@@ -13,12 +10,14 @@ class State {
         if (!state) {
             return;
         }
-        this.setShakespeare(state.shakespeare);
+        this.setShakespeare(typeof state.shakespeare === 'undefined' ? this.shakespeare : state.shakespeare);
+        this.setOWO(typeof state.owo === 'undefined' ? this.owo : state.owo);
     }
 
     getState() {
         return {
-            'shakespeare': this.shakespeare
+            'shakespeare': this.shakespeare,
+            'owo': this.owo
         }
     }
 
@@ -28,8 +27,18 @@ class State {
         console.log(this.shakespeare);
     }
 
+    setOWO(value) {
+        if (value === undefined) return;
+        this.owo = !!value;
+        console.log(this.owo);
+    }
+
     isShakespeare() {
         return this.shakespeare;
+    }
+
+    isOWO() {
+        return this.owo;
     }
 }
 

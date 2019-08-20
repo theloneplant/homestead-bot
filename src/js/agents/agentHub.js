@@ -4,7 +4,9 @@ const actionHub = require(path.join(__dirname, '../actions/actionHub'));
 const apiaiAgent = require(path.join(__dirname, '../agents/apiaiAgent'));
 const commandAgent = require(path.join(__dirname, '../agents/commandAgent'));
 const dadAgent = require(path.join(__dirname, '../agents/dadAgent'));
+const keywordAgent = require(path.join(__dirname, '../agents/keywordAgent'));
 const randomAgent = require(path.join(__dirname, '../agents/randomAgent'));
+const scheduleAgent = require(path.join(__dirname, '../agents/scheduleAgent'));
 const config = file.read(path.join(__dirname, '../../../config/server.json'));
 
 module.exports = function() {
@@ -14,8 +16,25 @@ module.exports = function() {
 	];
 	var idleAgents = [
 		dadAgent,
-		randomAgent
+		keywordAgent,
+		randomAgent,
 	];
+	var startAgents = [
+		scheduleAgent
+	];
+
+	function start(group, cb) {
+		for (var i in startAgents) {
+			startAgents[i].start(group, (match, res, err) => {
+				if (err) {
+					console.error(err);
+				}
+				if (match) {
+					actionHub.run(res, cb);
+				}
+			});
+		}
+	}
 
 	function interpret(req, cb) {
 		try {
@@ -49,29 +68,29 @@ module.exports = function() {
 	}
 
 	// Loops through all agents in a list and sees if the request matches an action
-	function matchAgent(list, req, done, i = 0) {
+	function matchAgent(list, req, cb, i = 0) {
 		if (i < list.length) {
 			list[i].interpret(req, (match, res, err) => {
 				if (err) {
 					console.log('Error: Unable to interpret message "' + res.message + '"');
-					matchAgent(list, req, done, ++i);
+					matchAgent(list, req, cb, ++i);
 				}
 				if (match) {
-					done(res);
+					cb(res);
 				}
 				else {
-					matchAgent(list, req, done, ++i);
+					matchAgent(list, req, cb, ++i);
 				}
 			});
 		}
 		else {
 			// Run the default action
-			done(req);
+			cb(req);
 		}
 	}
 
 	function isMentioned(req) {
-		var msgArr = req.message.replace(/[.,\/@#!$%\^&\*;:{}=\-_`~()]/g, '').split(/\s/g);
+		var msgArr = req.message.replace(/[\.,\/@#!?$%\^&\*;:{}=\-_`~()]/g, '').split(/\s/g);
 		var nicknames = config.groups[req.client.group].nicknames;
 		var prefix = config.groups[req.client.group].agents.command.prefix;
 		if (req.message[0] === prefix) {
@@ -92,5 +111,5 @@ module.exports = function() {
 		return flag;
 	}
 
-	return { interpret };
+	return { start, interpret };
 }();

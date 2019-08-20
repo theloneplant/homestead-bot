@@ -8,6 +8,7 @@ module.exports = function() {
 	function sendMessage(text, req, cb, params = {}, updateCB) {
 		req.action = {
 			'text': text,
+			'targetUser': params.targetUser,
 			'temp': params.temp,
 			'embed': params.embed,
 			'code': params.code,

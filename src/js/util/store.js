@@ -63,6 +63,31 @@ class Store {
         });
     }
 
+    loadAll(cb) {
+        function loadHelper(keys, objMap) {
+            if (!objMap) {
+                objMap = {};
+            }
+            if (keys.length === 0) {
+                cb(undefined, objMap);
+                return;
+            }
+            var key = keys.shift();
+            this.load(key, (err, obj) => {
+                if (err) {
+                    cb(err, objMap);
+                    return;
+                }
+                objMap[key] = obj;
+                loadHelper(keys);
+            })
+        }
+
+        redis.getKeys(this.namespace, (err, keys) => {
+            loadHelper(keys);
+        })
+    }
+
     clearExpiredKeys(name) {
         for (var key in this.map[name]) {
             if (this.map[name][key].expire && Date.now() - this.map[name][key].expire > 0) {

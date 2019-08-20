@@ -86,13 +86,69 @@ module.exports = function() {
 			'commands': [
 				{
 					'command': 'play',
-					'params': [{'name': 'search', 'type': type.default}]
+					'params': [{'name': 'search', 'type': type.default}],
+					'constants': [{'name': 'mediaControl', 'value': 'resume'}]
 				}
 			],
 			'phrases': [
 				id + ' play Flight of the Valkyrie',
 				'Hey ' + id + ' play Imperial March on YouTube'
 			]
+		},
+		'pause': {
+			'name': 'Pause Music Playback',
+			'description': 'Pause an ongoing music stream.',
+			'action': 'PlayMusic',
+			'commands': [{
+				'command': 'pause',
+				'constants': [{'name': 'mediaControl', 'value': 'pause'}]
+			}],
+			'phrases': [
+				id + ' pause',
+				'Hey ' + id + ' pause'
+			]
+		},
+		'stop': {
+			'name': 'Stop Music Playback',
+			'description': 'Stop an ongoing music stream, this will cause the bot to leave the voice channel.',
+			'action': 'PlayMusic',
+			'commands': [{
+				'command': 'stop',
+				'constants': [{'name': 'mediaControl', 'value': 'stop'}]
+			}],
+			'phrases': [
+				id + ' stop',
+				'Hey ' + id + ' stop'
+			]
+		},
+		'goodjob': {
+			'name': 'Good Job!',
+			'description': 'You\'re doing good, keep it up!',
+			'action': 'PlayMusic',
+			'commands': [{
+				'command': 'goodjob',
+				'constants': [
+					{'name': 'search', 'value': 'https://www.youtube.com/watch?v=-ynhl8wt3pc'},
+					{'name': 'message', 'value': 'Good Job!'}
+				]
+			}]
+		},
+		'oof': {
+			'name': 'Oof',
+			'description': 'Oof',
+			'action': 'PlayMusic',
+			'commands': [{
+				'command': 'oof',
+				'constants': [{
+						'name': 'search',
+						'value': 'https://www.youtube.com/watch?v=iTHKqgKO45M'
+					},
+					{
+						'name': 'message',
+						'value': 'OOF'
+					}
+				]
+			}]
 		},
 		'translate': {
 			'name': 'Translate',
@@ -101,6 +157,29 @@ module.exports = function() {
 			'phrases': [
 				id + ' translate hello to German',
 				'Hey ' + id + ' translate お前はもう死んでいる'
+			]
+		},
+		'bobross': {
+			'name': 'Bob Ross Episodes',
+			'description': 'Posts a random episode from The Joy of Painting',
+			'action': 'BobRoss',
+			'commands': [{
+				'command': 'bob',
+				'command': 'bobross',
+			}]
+		},
+		'copypasta': {
+			'name': 'Copypasta Posting',
+			'description': 'Posts a random copypasta',
+			'action': 'PostReddit',
+			'commands': [
+				{
+					'command': 'copypasta',
+					'constants': [
+						{'name': 'subreddit', 'value': 'copypasta'},
+						{'name': 'time', 'value': 'week'}
+					]
+				}
 			]
 		},
 		'meme': {
@@ -196,6 +275,19 @@ module.exports = function() {
 			],
 			'examples': [
 				'shakespeare'
+			]
+		},
+		'owo': {
+			'name': 'OwO Mode',
+			'description': '<b>Notices bulge</b> OwO What\'s this?',
+			'action': 'State',
+			'commands': [{
+					'command': 'owo',
+					'constants': [{'name': 'owo', 'value': true}]
+				}
+			],
+			'examples': [
+				'owo'
 			]
 		},
 		'chat': {

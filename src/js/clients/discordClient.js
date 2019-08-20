@@ -1,6 +1,7 @@
+const fs = require('fs');
 const path = require('path');
 const Discord = require('discord.js');
-const ytstream = require('youtube-audio-stream');
+const ytdl = require('ytdl-core');
 const file = require(path.join(__dirname, '../util/file'));
 const State = require(path.join(__dirname, '../state/state'));
 const filter = require(path.join(__dirname, '../state/filter'));
@@ -8,18 +9,24 @@ const agentHub = require(path.join(__dirname, '../agents/agentHub'));
 const config = file.read(path.join(__dirname, '../../../config/server.json'));
 
 class DiscordClient {
+
 	constructor(group, credentials) {
+		this.MAX_MESSAGE_LENGTH = 2000;
+		this.MAX_MESSAGES = 10;
 		this.group = group;
 		this.state = new State();
 		this.discordClient = new Discord.Client();
 		this.discordClient.login(credentials.token);
 		this.discordClient.on('ready', msg => {
-			this.discordClient.user.setGame(config.groups[this.group].agents.command.prefix + 'help');
+			this.discordClient.user.setActivity(config.groups[this.group].agents.command.prefix + 'help');
 		});
 		this.discordClient.on('message', msg => {
 			this.receive(msg);
 		});
 		this.defaultVoiceChannel = config.groups[this.group].clients.discord.defaultVoiceChannel;
+		agentHub.start(group, (res) => {
+
+		})
 		console.log('Created discord client for ' + group);
 	}
 
@@ -63,24 +70,34 @@ class DiscordClient {
 	}
 
 	handleResponse(err, msg, res, cb) {
-		console.log('there');
 		if (err) {
 			console.log(err);
 		}
 		else if (res && res.action) {
-			console.log('here');
-			this.state.setState(res.client.state);
+			if (res.client && res.client.state) {
+				this.state.setState(res.client.state);
+			}
 			if (res.action.statusText) {
 				this.updateStatus(res.action.statusText);
 			}
 			if (res.action.text || res.action.text === '' || res.action.options) {
-				if (res.action.temp) {
-					console.log('temp');
-					this.sendTemp(msg, res);
+				if (res.targetUser) {
+					this.discordClient.fetchUser(res.targetUser).then((user) => {
+						this.send(res, msg, user);
+					}).catch(console.log);
 				}
 				else {
-					console.log('send');
-					this.send(msg, res);
+					this.send(res, msg);
+				}
+			}
+			else if (res.action.mediaControl) {
+				var message = this.mediaControl(res.action.mediaControl);
+				if (message) {
+					res.action.text = message;
+					this.send(res, msg);
+				}
+				else {
+					this.stopTyping(msg);
 				}
 			}
 			else if (res.action.streamService === 'youtube') {
@@ -89,31 +106,103 @@ class DiscordClient {
 		}
 	}
 
-	send(msg, res) {
-		var message = this.replaceFormatting(res.action.text);
-		var embed = res.action.embed ? JSON.parse(this.replaceFormatting(JSON.stringify(res.action.embed))) : null;
-		message = filter.message(message, this.state);
-		embed = filter.embed(embed, this.state);
-		if (this.state.isShakespeare()) {
-			this.discordClient.user.setGame(config.groups[this.group].agents.command.prefix + 'helpeth');
-		}
-		console.log(embed);
-		var options = { embed };
-		console.log(options);
-		if (res.action.private) {
-			msg.author.send(message, options).then((msg) => {
-				this.onSend(res, msg);
-			}).catch(console.log);
-			if (msg.channel.type === 'text') {
-				this.sendTemp(msg, 'I\'ve sent you a PM');
+	send(res, msg, user) {
+		if (res && res.action) {
+			if (res.action.temp) {
+				return this.sendTemp(res, msg);
+			}
+			var message = this.replaceFormatting(res.action.text);
+			var embed = res.action.embed ? JSON.parse(this.replaceFormatting(JSON.stringify(res.action.embed))) : null;
+			message = filter.message(message, this.state);
+			embed = filter.embed(embed, this.state);
+			if (this.state.isShakespeare()) {
+				this.discordClient.user.setActivity(config.groups[this.group].agents.command.prefix + 'helpeth');
+			}
+			console.log(embed);
+			var options = { embed };
+			console.log(options);
+
+			var clientConfig = config.groups[this.group].clients.discord;
+			var guild = this.discordClient.guilds[clientConfig.guildID];
+			var targetUser = user || (msg && msg.author);
+			var targetChannel = (msg && msg.channel) || (guild && guild.channels[clientConfig.defaultTextChannel]);
+
+			if (res.action.private && targetUser) {
+				targetUser.send(message, options).then((msg) => {
+					this.onSend(res, msg);
+				}).catch(console.log);
+				if (targetChannel && targetChannel.type === 'text') {
+					this.sendTemp(msg, 'I\'ve sent you a PM');
+				} else {
+					console.error('Unable to send text message to channel of type ' + targetChannel.type);
+				}
+			} else if (targetChannel) {
+				if (targetChannel.type === 'text' || targetChannel.type === 'dm') {
+					var userText = targetUser ? targetUser + ' ' : '';
+					this.sendMessage(targetChannel, userText, message, options, (msg) => {
+						this.stopTyping(msg);
+						this.onSend(res, msg);
+					});
+				} else {
+					console.error('Unable to send text message to channel of type ' + targetChannel.type);
+				}
+			} else {
+				console.error("Unable to send message\nTarget channel: " + targetChannel + "\nTarget user: " + targetUser);
 			}
 		}
 		else {
-			msg.channel.send(msg.author + ' ' + message, options).then((msg) => {
-				this.stopTyping(msg);
-				this.onSend(res, msg);
-			}).catch(console.log);
+			console.error('Unable to send response, action result is undefined');
 		}
+	}
+
+	sendMessage(targetChannel, userText, message, options, cb, maxMessages = this.MAX_MESSAGES) {
+		var messageRemaining = message;
+		var messageChunk = "";
+		var paragraphArr = messageRemaining.split('\n');
+		for (var i = 0; i < paragraphArr.length; i++) {
+			// If the chunk contains one or more paragraphs then update the remaining message and send the chunk
+			if (userText.length + messageChunk.length + paragraphArr[i].length <= this.MAX_MESSAGE_LENGTH) {
+				messageRemaining = paragraphArr.slice(i + 1).join('\n');
+				messageChunk += paragraphArr[i] + '\n';
+			}
+			else if (i > 0) {
+				console.log("posting paragraphs");
+				messageRemaining = paragraphArr.slice(i).join('\n');
+				break;
+			}
+			// Split by sentence if a single paragraph is too long
+			else {
+				console.log("posting sentences");
+				var sentenceArr = message.split(/(?<=[.?!])\s/gm);
+				for (var j = 0; j < sentenceArr.length; j++) {
+					if (userText.length + messageChunk.length + sentenceArr[i].length <= this.MAX_MESSAGE_LENGTH) {
+						messageRemaining = sentenceArr.slice(i + 1).join('\n');
+						messageChunk += sentenceArr[i] + ' ';
+					}
+					else if (j > 0) {
+						console.log("posting sentence");
+						messageRemaining = sentenceArr.slice(i).join(' ');
+						break;
+					}
+					else {
+						console.log("posting remainder");
+						messageChunk = message.substr(0, this.MAX_MESSAGE_LENGTH);
+						messageRemaining = sentenceArr.substr(this.MAX_MESSAGE_LENGTH, message.length);
+						break;
+					}
+				}
+				break;
+			}
+		}
+
+		targetChannel.send(userText + messageChunk, options).then((msg) => {
+			console.log("sent (" + maxMessages + "): " + messageRemaining)
+			if (maxMessages - 1 <= 0 || messageRemaining.length === 0) {
+				cb(msg);
+				return;
+			}
+			this.sendMessage(targetChannel, userText, messageRemaining, options, cb, maxMessages - 1);
+		}).catch(console.log);
 	}
 
 	stopTyping(msg, retry = 5) {
@@ -131,7 +220,7 @@ class DiscordClient {
 		msg.channel.send(text, options).then(message => {
 			msg.channel.stopTyping();
 			message.delete(timeout);
-		});
+		}).catch(console.log);
 	}
 
 	updateStatus(statusText, retry = 5) {
@@ -149,10 +238,7 @@ class DiscordClient {
 	}
 
 	onSend(res, msg) {
-		console.log('hello world')
 		if (res && res.action && res.action.emotes && res.action.emotes.length > 0) {
-			console.log('res.action.emotes')
-			console.log(typeof res.action.emotes[0])
 			msg.react(res.action.emotes[0]).then(() => {
 				res.action.emotes = res.action.emotes.slice(1);
 				this.onSend(res, msg);
@@ -162,7 +248,6 @@ class DiscordClient {
 			});
 		}
 		else {
-			console.log('success')
 			if (res.action.cb) res.action.cb();
 		}
 	}
@@ -173,6 +258,40 @@ class DiscordClient {
 			.replace(/<u.*?>|<\/u>/g, '__')
 			.replace(/<b.*?>|<strong>|<\/b>|<\/strong>/g, '**')
 			.replace(/<script.*?>|<\/script>/g, '```');
+	}
+
+	mediaControl(controlFunction) {
+		if (this.dispatcher && typeof this.dispatcher.destroyed === 'boolean' && !this.dispatcher.destroyed) {
+			if (controlFunction === 'play' || controlFunction === 'resume') {
+				this.dispatcher.resume();
+				this.sendHeartbeat();
+				return undefined;
+			}
+			else if (controlFunction === 'pause') {
+				this.dispatcher.pause();
+				clearTimeout(this.heartbeatTimeout);
+				return undefined;
+			}
+			else if (controlFunction === 'stop') {
+				this.dispatcher.end('User requested stream to end');
+				clearTimeout(this.heartbeatTimeout);
+				return undefined;
+			}
+			return 'Sorry I don\'t support ' + controlFunction + ' yet';
+		}
+		return 'Unable to ' + controlFunction + ', there is no active music stream';
+	}
+
+	sendHeartbeat() {
+		this.heartbeatTimeout = setTimeout(() => {
+			if (!this.dispatcher || this.dispatcher.destroyed) {
+				return;
+			}
+			if (!this.dispatcher.paused) {
+				this.dispatcher.resume();
+				this.sendHeartbeat();
+			}
+		}, 30000);
 	}
 
 	playYoutube(streamUrl, msg) {
@@ -187,14 +306,19 @@ class DiscordClient {
 			voiceChannel = this.discordClient.channels.get(this.defaultVoiceChannel);
 		}
 		voiceChannel.join().then((connection) => {
-			var stream = ytstream(streamUrl, { filter : 'audioonly' });
 			this.connection = connection;
-			this.dispatcher = this.connection.playStream(stream, { seek: 0, volume: 0.75 });
-			this.dispatcher.setBitrate(128);
-
-			this.connection.on('error', (error) => {
-				console.log('Connection error: \n' + error);
+			var stream = ytdl(streamUrl, {
+				liveBuffer: 10000,
+				quality: 'highestaudio',
+				filter: 'audioonly'
 			});
+			this.dispatcher = this.connection.playStream(stream, {
+				seek: 0,
+				volume: 0.75,
+				bitrate: 'auto'
+			});
+			this.sendHeartbeat();
+			this.dispatcher.setBitrate('auto');
 			this.dispatcher.on('error', (error) => {
 				console.log('Dispatcher error: \n' + error);
 			});
@@ -204,7 +328,10 @@ class DiscordClient {
 				this.connection.disconnect();
 				// TODO: Send response to action and queue next song if available
 			});
-		}).catch(err => console.log('Error: ' + err));
+			this.connection.on('error', (error) => {
+				console.log('Connection error: \n' + error);
+			});
+		}).catch(console.log);
 	}
 }
 

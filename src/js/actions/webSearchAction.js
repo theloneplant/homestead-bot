@@ -12,7 +12,7 @@ module.exports = function() {
 	function run(req, cb) {
 		var params = req.agent.params;
 		if (params.type) {
-			if (params.type === 'Image') {
+			if (params.type === 'image') {
 				searchImages(params.search, req, cb);
 			}
 			else {
