@@ -22,7 +22,7 @@
     "forever": "^0.15.3",
     "fs": "0.0.1-security",
     "google-translate-api": "^2.3.0",
-    "googleapis": "^36.0.0",
+    "googleapis": "^59.0.0",
     "http": "0.0.0",
     "https": "^1.0.0",
     "libsodium-wrappers": "^0.5.4",
