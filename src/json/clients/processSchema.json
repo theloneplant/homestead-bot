@@ -1,0 +1,9 @@
+{
+	"clientInfo": {
+		"user": { "type": "string" },
+		"client": { "type": "string" },
+		"clientType": { "type": "string" },
+		"event": { "type": "string" },
+		"message": { "type": "string" }
+	}
+}

@@ -8,11 +8,19 @@ module.exports = function() {
 	var clients = [];
 
 	function start() {
+		console.log("ahahahaha")
 		for (var key in config.groups) {
 			if (config.groups.hasOwnProperty(key)) {
 				for (var clientKey in config.groups[key].clients) {
 					if (clientKey === 'discord') {
-						clients.push(new DiscordClient(key, credentials.clients[key][clientKey]));
+						try {
+							console.log("woo boy howdy1")
+							clients.push(new DiscordClient(key, credentials.clients[key][clientKey]));
+
+						} catch(e) {
+							console.log("woo boy howdy")
+							console.log(e)
+						}
 					}
 					else {
 						// Do nothing

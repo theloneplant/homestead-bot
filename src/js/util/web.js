@@ -17,10 +17,13 @@ module.exports = function() {
 	function scrape(url, selector, cb) {
 		getDom(url, (err, $) => {
 			if (err) {
+				console.log("BBBBBBBB")
 				cb(err);
 			}
 			else {
 				var element = $(selector);
+				console.log('element::::');
+				console.log(element);
 				if (!element) {
 					console.log('Unable to scrape ' + url + ' with selector: ' + selector);
 				}

@@ -14,15 +14,26 @@ module.exports = function() {
 		var selector = 'ol#b_results';
 		web.scrape(url, selector, function(err, $, element) {
 			var result;
+			console.log("element")
+			console.log(element)
+			console.log(element.children().length)
+			console.log("AGHHHHH")
 			element.children().each(function() {
+				console.log("in here")
+				// console.log($(this))
 				if ($(this).hasClass('b_ans') && $(this).hasClass('b_top')) {
+					console.log("Found answer")
 					result = findAnswer($(this));
 					if (result) {
 						cb(null, result);
 						return false;
 					}
 				}
-				else if ($(this).hasClass('b_algo')) {
+			});
+			element.children().each(function() {
+				console.log("in here2")
+				if ($(this).hasClass('b_algo')) {
+					console.log("Found link")
 					result = findLink(group, $(this));
 					if (result) {
 						cb(null, result);
@@ -86,6 +97,7 @@ module.exports = function() {
 
 	function findAnswer(element) {
 		try {
+			console.log("finding answer")
 			var container = element.find('.tpft .sf_tmc .sf_tc');
 			// Strings in the header are formatted as 'TITLE · TYPE'
 			var title = container.children('div:nth-child(1)').children('div:nth-child(1)').html();
@@ -95,6 +107,7 @@ module.exports = function() {
 			var upcoming = Date.parse(result.match(/[a-zA-Z]+ \d+, \d+/g)[0]) > Date.now();
 
 			if (result && title && upcoming !== null) {
+				console.log("yay")
 				return {
 					'result': result,
 					'title': title,
@@ -107,7 +120,9 @@ module.exports = function() {
 			}
 		}
 		catch (err) {
-			return null;
+				console.log("oh no")
+				console.log(err)
+				return null;
 		}
 	}
 

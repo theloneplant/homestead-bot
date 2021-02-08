@@ -11,16 +11,22 @@ const config = file.read(path.join(__dirname, '../../../config/server.json'));
 class DiscordClient {
 
 	constructor(group, credentials) {
+		console.log("new client before creation")
 		this.MAX_MESSAGE_LENGTH = 2000;
 		this.MAX_MESSAGES = 10;
 		this.group = group;
 		this.state = new State();
+		console.log("new client before creation")
 		this.discordClient = new Discord.Client();
+		console.log("new client")
 		this.discordClient.login(credentials.token);
+		console.log("new client login")
 		this.discordClient.on('ready', msg => {
+			console.log("new client ready")
 			this.discordClient.user.setActivity(config.groups[this.group].agents.command.prefix + 'help');
 		});
 		this.discordClient.on('message', msg => {
+			console.log("new client message")
 			this.receive(msg);
 		});
 		this.defaultVoiceChannel = config.groups[this.group].clients.discord.defaultVoiceChannel;
@@ -101,7 +107,13 @@ class DiscordClient {
 				}
 			}
 			else if (res.action.streamService === 'youtube') {
-				this.playYoutube(res.action.streamUrl, msg);
+				this.playYoutube(res.action.streamUrl, msg, () => {
+					console.log("done playing")
+					if (typeof res.action.onEnd === 'function') {
+						console.log("onEnd is valid")
+						res.action.onEnd();
+					}
+				});
 			}
 		}
 	}
@@ -289,12 +301,12 @@ class DiscordClient {
 			}
 			if (!this.dispatcher.paused) {
 				this.dispatcher.resume();
-				this.sendHeartbeat();
+				// this.sendHeartbeat();
 			}
 		}, 30000);
 	}
 
-	playYoutube(streamUrl, msg) {
+	playYoutube(streamUrl, msg, cb) {
 		var voiceChannel;
 		if (this.dispatcher) {
 			this.dispatcher.end('Playing new track');
@@ -308,17 +320,14 @@ class DiscordClient {
 		voiceChannel.join().then((connection) => {
 			this.connection = connection;
 			var stream = ytdl(streamUrl, {
-				liveBuffer: 10000,
-				quality: 'highestaudio',
 				filter: 'audioonly'
 			});
 			this.dispatcher = this.connection.playStream(stream, {
 				seek: 0,
-				volume: 0.75,
-				bitrate: 'auto'
+				volume: 1
 			});
-			this.sendHeartbeat();
-			this.dispatcher.setBitrate('auto');
+			// this.sendHeartbeat();
+			// this.dispatcher.setBitrate('auto');
 			this.dispatcher.on('error', (error) => {
 				console.log('Dispatcher error: \n' + error);
 			});
@@ -326,7 +335,11 @@ class DiscordClient {
 				console.log('Reason: ' + reason);
 				// This is a temporary hack for playing a song after one is already started
 				this.connection.disconnect();
-				// TODO: Send response to action and queue next song if available
+
+				if (typeof cb === "function") {
+					console.log("Done playing, sending response");
+					cb();
+				};
 			});
 			this.connection.on('error', (error) => {
 				console.log('Connection error: \n' + error);

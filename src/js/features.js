@@ -277,6 +277,19 @@ module.exports = function() {
 				'shakespeare'
 			]
 		},
+		'pirate': {
+			'name': 'Pirate Mode',
+			'description': 'Changes the way that the bot speaks to reply as if it were a pirate. This behaves as a toggle and can turn this mode on and off.',
+			'action': 'State',
+			'commands': [{
+					'command': 'pirate',
+					'constants': [{'name': 'pirate', 'value': true}]
+				}
+			],
+			'examples': [
+				'pirate'
+			]
+		},
 		'owo': {
 			'name': 'OwO Mode',
 			'description': '<b>Notices bulge</b> OwO What\'s this?',

@@ -12,6 +12,10 @@ module.exports = function() {
 		'Try asking again, I wasn\'t able to understand what you wanted me to search for.'
 	]);
 
+	// Queue for songs currently playing and history of past songs
+	var queue = [];
+	var history = [];
+
 	function run(req, cb) {
 		console.log(JSON.stringify(req.agent.params))
 		var search = req.agent.params.search;
@@ -29,32 +33,74 @@ module.exports = function() {
 				action.sendMessage(error.randomError(), req, cb);
 			}
 		}
-		else {
-			youTube.search(search, (err, type, url) => {
-				if (err) {
-					console.log(err);
-					action.sendMessage(error.randomError(), req, cb);
-				} else {
-					if (type === 'video') {
-						var info = {
-							'streamUrl': url,
-							'streamService': 'youtube'
-						}
-						if (message) {
-							action.sendMessage(message, req, cb);
-						}
-						else {
-							action.sendMessage('Playing a ' + type + ' I found for ' + search + ':\n' + url, req, cb);
-						}
-						action.sendInfo(info, req, cb);
-					} else {
-						action.sendMessage('Playing a ' + type + ' is unsupported right now\n' +
-							'Here\'s a ' + type + ' I found for ' + search + ':\n' + url, req, cb);
-					}
-					// TODO: Check and queue other songs if other types
-				}
-			});
+		else if (queue.length === 0) {
+			addMusic(search, message);
+			playMusic(search, message, req, cb);
 		}
+		else {
+			addMusic(search, message);
+			console.log("adding to queue: " + message);
+			action.sendMessage("Added song to queue", req, cb);
+		}
+	}
+
+	function playMusic(search, message, req, cb) {
+		console.log("playing track " + search);
+		youTube.search(search, (err, type, url) => {
+			if (err) {
+				console.log(err);
+				action.sendMessage(error.randomError(), req, cb);
+				onMusicEnd(req, cb);
+			} else {
+				if (type === 'video') {
+					var info = {
+						'streamUrl': url,
+						'streamService': 'youtube',
+						'onCancel': () => { onMusicCancel(req, cb) },
+						'onEnd': () => { console.log("music ending, calling cb"); onMusicEnd(req, cb) }
+					}
+					if (message) {
+						action.sendMessage(message, req, cb);
+					}
+					else {
+						action.sendMessage('Playing a ' + type + ' I found for ' + search + ':\n' + url, req, cb);
+					}
+					action.sendInfo(info, req, cb);
+				} else {
+					action.sendMessage('Playing a ' + type + ' is unsupported right now\n' +
+						'Here\'s a ' + type + ' I found for ' + search + ':\n' + url, req, cb);
+				}
+				// TODO: Check and queue other songs if other types
+			}
+		});
+	}
+
+	function onMusicCancel(req, cb) {
+		console.log("Music cancelled")
+	}
+
+	function onMusicEnd(req, cb) {
+		console.log("Music finished")
+		// Remove the current playing track and add it to history
+		if (queue.length > 0) {
+			console.log("removing current track")
+			history.push(queue.shift());
+		}
+		// Continue with the next track if available
+		if (queue.length > 0) {
+			console.log("playing next track")
+			var node = queue[0];
+			playMusic(node.search, node.message, req, cb);
+		}
+	}
+
+	function addMusic(search, message) {
+		var node = {
+			'search': search,
+			'message': message
+		}
+		queue.push(node);
+		return node;
 	}
 
 	return { run };

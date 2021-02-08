@@ -13,6 +13,8 @@ module.exports = function() {
 		var params = req.agent.params;
 		bing.search(params.search + ' release date', req.client.group, (err, res) => {
 			if (err) {
+				console.log("ERROR")
+				console.log(err)
 				action.sendMessage(error.randomError(), req, cb);
 			}
 			else if (res.type === 'answer') {
@@ -29,6 +31,8 @@ module.exports = function() {
 				action.sendMessage(result, req, cb);
 			}
 			else {
+				console.log("ahhh")
+				console.log(res)
 				action.sendMessage(error.randomError(), req, cb);
 			}
 		});

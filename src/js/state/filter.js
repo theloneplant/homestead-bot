@@ -1,5 +1,6 @@
 const path = require('path');
 const shakespeare = require(path.join(__dirname, '../util/shakespeare'));
+const pirate = require(path.join(__dirname, '../util/pirate'));
 const owo = require(path.join(__dirname, '../util/owo'));
 
 module.exports = function () {
@@ -43,6 +44,10 @@ module.exports = function () {
         console.log(filtered);
         if (state.isShakespeare()) {
             filtered = shakespeare.translate(filtered);
+        }
+        console.log(filtered);
+        if (state.isPirate()) {
+            filtered = pirate.translate(filtered);
         }
         console.log(filtered);
         if (state.isOWO()) {

@@ -20,6 +20,9 @@ db/
 # Remote sync
 .remote-sync.json
 
+# Client secrets
+client_secret.json
+
 # Runtime data
 pids
 *.pid

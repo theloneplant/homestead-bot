@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+console.log("before start")
+
 const http = require('http');
 const https = require('https');
 const express = require('express');
@@ -9,6 +11,9 @@ const cluster = require('cluster');
 const homesteadBot = require(path.join(__dirname, 'src/js/bot'));
 const config = file.read(path.join(__dirname, 'config/server.json'));
 const port = process.env.PORT || config.port;
+require("tls").DEFAULT_ECDH_CURVE = "auto"
+
+console.log("starting")
 
 if (cluster.isMaster) {
 	console.log("Starting master");
@@ -31,6 +36,7 @@ else {
 			cert: file.read(path.join(__dirname, 'ssl/ssl.crt')),
 			ca: file.read (path.join(__dirname, 'ssl/ssl.ca-bundle'))
 		};
+		console.log("creating server")
 		server = https.createServer(options, app);
 	}
 	catch(err) {
@@ -48,6 +54,7 @@ else {
 		!req.secure ? res.redirect('https://' + req.hostname + req.url) : next();
 	});
 
+	console.log("Starting Homestead Bot")
 	homesteadBot.start();
 }
 
