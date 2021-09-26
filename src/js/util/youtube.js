@@ -9,11 +9,13 @@ module.exports = function() {
 
 	function search(message, cb) {
 		youTube.search(message, 1, function(error, result) {
-			if (error) {
+			if (error || !result || !result.items || !result.items[0]) {
+				console.log(JSON.stringify(result));
 				console.log(error);
 				cb(error);
 			}
 			else {
+				console.log(JSON.stringify(result));
 				if (result.items[0].id.channelId) {
 					cb(null, 'channel', 'https://www.youtube.com/channel/' + result.items[0].id.channelId);
 				}

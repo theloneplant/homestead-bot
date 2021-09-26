@@ -12,7 +12,7 @@ const config = file.read(path.join(__dirname, '../../../config/server.json'));
 module.exports = function() {
 	var replyAgents = [
 		commandAgent,
-		apiaiAgent
+		//apiaiAgent
 	];
 	var idleAgents = [
 		dadAgent,
@@ -42,6 +42,7 @@ module.exports = function() {
 				if (isMentioned(req)) {
 					var res = { 'startTyping': true };
 					cb(null, res);
+					console.log("matching mentioned: " + JSON.stringify(req))
 					matchAgent(replyAgents, req, (res) => {
 						actionHub.run(res, cb);
 					});
@@ -56,6 +57,7 @@ module.exports = function() {
 				}
 			}
 			else {
+				console.log("matching other")
 				matchAgent(replyAgents, req, (res) => {
 					actionHub.run(res, cb);
 				});
@@ -73,6 +75,7 @@ module.exports = function() {
 			list[i].interpret(req, (match, res, err) => {
 				if (err) {
 					console.log('Error: Unable to interpret message "' + res.message + '"');
+					console.log(err)
 					matchAgent(list, req, cb, ++i);
 				}
 				if (match) {

@@ -20,10 +20,14 @@ module.exports = function() {
 		console.log(JSON.stringify(req.agent.params))
 		var search = req.agent.params.search;
 		var message = req.agent.params.message;
+		var interrupt = req.agent.params.interrupt;
 		var mediaControl = req.agent.params.mediaControl;
+		if (interrupt) {
+			
+		}
 		if (!search) {
-			if (mediaControl === 'play' || mediaControl === 'resume' || mediaControl === 'pause' ||
-				mediaControl === 'stop' || mediaControl === 'skip' || mediaControl === 'prev' ||
+			if (mediaControl === 'play' || mediaControl === 'pause' ||
+				mediaControl === 'stop' || mediaControl === 'skip' ||
 				mediaControl === 'replay') {
 				console.log('send info for music')
 				action.sendInfo({'mediaControl': mediaControl}, req, cb);
@@ -50,14 +54,16 @@ module.exports = function() {
 			if (err) {
 				console.log(err);
 				action.sendMessage(error.randomError(), req, cb);
-				onMusicEnd(req, cb);
+				onEnd(req, cb);
 			} else {
 				if (type === 'video') {
+					var startTime = Date.now();
 					var info = {
 						'streamUrl': url,
 						'streamService': 'youtube',
-						'onCancel': () => { onMusicCancel(req, cb) },
-						'onEnd': () => { console.log("music ending, calling cb"); onMusicEnd(req, cb) }
+						'timestamp': startTime,
+						'onCancel': () => { onInterrupt(url, startTime, req, cb) },
+						'onEnd': () => { onEnd(req, cb) }
 					}
 					if (message) {
 						action.sendMessage(message, req, cb);
@@ -70,16 +76,16 @@ module.exports = function() {
 					action.sendMessage('Playing a ' + type + ' is unsupported right now\n' +
 						'Here\'s a ' + type + ' I found for ' + search + ':\n' + url, req, cb);
 				}
-				// TODO: Check and queue other songs if other types
 			}
 		});
 	}
 
-	function onMusicCancel(req, cb) {
+	function onInterrupt(timestamp, req, cb) {
 		console.log("Music cancelled")
+
 	}
 
-	function onMusicEnd(req, cb) {
+	function onEnd(req, cb) {
 		console.log("Music finished")
 		// Remove the current playing track and add it to history
 		if (queue.length > 0) {

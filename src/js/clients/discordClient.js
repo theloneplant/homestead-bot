@@ -17,7 +17,18 @@ class DiscordClient {
 		this.group = group;
 		this.state = new State();
 		console.log("new client before creation")
-		this.discordClient = new Discord.Client();
+		this.discordClient = new Discord.Client({
+			intents: [ 
+				Discord.Intents.FLAGS.GUILDS, 
+				Discord.Intents.FLAGS.GUILD_MESSAGES,
+				Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+				Discord.Intents.FLAGS.GUILD_MESSAGE_TYPING,
+				Discord.Intents.FLAGS.DIRECT_MESSAGES,
+				Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+				Discord.Intents.FLAGS.DIRECT_MESSAGE_TYPING,
+				Discord.Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS,
+			]
+		});
 		console.log("new client")
 		this.discordClient.login(credentials.token);
 		console.log("new client login")
@@ -25,7 +36,7 @@ class DiscordClient {
 			console.log("new client ready")
 			this.discordClient.user.setActivity(config.groups[this.group].agents.command.prefix + 'help');
 		});
-		this.discordClient.on('message', msg => {
+		this.discordClient.on('messageCreate', msg => {
 			console.log("new client message")
 			this.receive(msg);
 		});
@@ -37,11 +48,16 @@ class DiscordClient {
 	}
 
 	receive(msg) {
+		console.log("got message");
+		console.log(JSON.stringify(msg));
 		if (msg.author.bot) return;
-		var botname = this.discordClient.user.username + '#' + this.discordClient.user.discriminator;
-		var from = msg.author.username + '#' + msg.author.discriminator;
-		var to = msg.isMentioned(this.discordClient.user) ? botname : null;
+		var botname = this.discordClient.user.toString();
+		var from = msg.author.toString();
+		var to = msg.mentions.members.size ? botname : null;
 		var message = msg.content.replace(/<\S*/g, config.botId);
+		console.log("bot name" + botname);
+		console.log("from" + from);
+		console.log("to" + to);
 		console.log(filter.message(message, this.state));
 		var req = {
 			'from': from,
@@ -62,7 +78,7 @@ class DiscordClient {
 				console.log(res);
 				if (res.startTyping) {
 					clearTimeout(this.typeTimeout);
-					msg.channel.startTyping();
+					//msg.channel.startTyping();
 				}
 				else {
 					this.handleResponse(err, msg, res, cb);
@@ -136,20 +152,20 @@ class DiscordClient {
 
 			var clientConfig = config.groups[this.group].clients.discord;
 			var guild = this.discordClient.guilds[clientConfig.guildID];
-			var targetUser = user || (msg && msg.author);
+			var targetUser = user || (msg && msg.author && msg.author.toString());
 			var targetChannel = (msg && msg.channel) || (guild && guild.channels[clientConfig.defaultTextChannel]);
 
 			if (res.action.private && targetUser) {
 				targetUser.send(message, options).then((msg) => {
 					this.onSend(res, msg);
 				}).catch(console.log);
-				if (targetChannel && targetChannel.type === 'text') {
+				if (targetChannel && targetChannel.type === 'GUILD_TEXT') {
 					this.sendTemp(msg, 'I\'ve sent you a PM');
 				} else {
 					console.error('Unable to send text message to channel of type ' + targetChannel.type);
 				}
 			} else if (targetChannel) {
-				if (targetChannel.type === 'text' || targetChannel.type === 'dm') {
+				if (targetChannel.type === 'GUILD_TEXT' || targetChannel.type === 'DM') {
 					var userText = targetUser ? targetUser + ' ' : '';
 					this.sendMessage(targetChannel, userText, message, options, (msg) => {
 						this.stopTyping(msg);
@@ -218,10 +234,10 @@ class DiscordClient {
 	}
 
 	stopTyping(msg, retry = 5) {
-		msg.channel.stopTyping();
-		this.typeTimeout = setTimeout(() => {
-			this.stopTyping(msg, --retry);
-		}, 200);
+		// msg.channel.stopTyping();
+		// this.typeTimeout = setTimeout(() => {
+		// 	this.stopTyping(msg, --retry);
+		// }, 200);
 	}
 
 	sendTemp(msg, res, options, timeout = 10000) {
@@ -307,17 +323,21 @@ class DiscordClient {
 	}
 
 	playYoutube(streamUrl, msg, cb) {
+		console.log("Playing youtube")
 		var voiceChannel;
 		if (this.dispatcher) {
 			this.dispatcher.end('Playing new track');
 		}
-		if (msg && msg.member && msg.member.voiceChannel) {
-			voiceChannel = msg.member.voiceChannel;
+		if (msg && msg.member && msg.member.voice && msg.member.voice.channel) {
+			voiceChannel = msg.member.voice.channel;
+			console.log("using vc1: " + voiceChannel + ", " + this.defaultVoiceChannel);
 		}
 		else {
-			voiceChannel = this.discordClient.channels.get(this.defaultVoiceChannel);
+			voiceChannel = this.discordClient.channels.cache.get(this.defaultVoiceChannel);
+			console.log("using vc2: " + voiceChannel + ", " + this.defaultVoiceChannel);
 		}
 		voiceChannel.join().then((connection) => {
+			console.log("Joined voice channel")
 			this.connection = connection;
 			var stream = ytdl(streamUrl, {
 				filter: 'audioonly'

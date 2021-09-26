@@ -128,7 +128,8 @@ module.exports = function() {
 			'commands': [{
 				'command': 'goodjob',
 				'constants': [
-					{'name': 'search', 'value': 'https://www.youtube.com/watch?v=-ynhl8wt3pc'},
+					{'name': 'search', 'value': '-ynhl8wt3pc'},
+					{'name': 'interrupt', 'value': true},
 					{'name': 'message', 'value': 'Good Job!'}
 				]
 			}]
@@ -139,14 +140,10 @@ module.exports = function() {
 			'action': 'PlayMusic',
 			'commands': [{
 				'command': 'oof',
-				'constants': [{
-						'name': 'search',
-						'value': 'https://www.youtube.com/watch?v=iTHKqgKO45M'
-					},
-					{
-						'name': 'message',
-						'value': 'OOF'
-					}
+				'constants': [
+					{'name': 'search', 'value': 'iTHKqgKO45M'},
+					{'name': 'interrupt', 'value': true},
+					{'name': 'message', 'value': 'OOF'}
 				]
 			}]
 		},
