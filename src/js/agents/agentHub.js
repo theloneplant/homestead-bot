@@ -100,10 +100,11 @@ module.exports = function() {
 	}
 
 	function isMentioned(req) {
-		console.log('message prefix: ' + req.message[0] + ', prefix: ' + prefix)
 		var msgArr = req.message.replace(/[\.,\/@#?!$%\^&\*;:{}=\-_`~()]/g, '').split(/\s/g);
-		var nicknames = config.groups[req.client.group].nicknames;
-		var prefix = config.groups[req.client.group].agents.command.prefix;
+		var group = config.groups[req.client.group];
+		var nicknames = group && group.nicknames;
+		var prefix = group && group.agents && group.agents.command && group.agents.command.prefix;
+		console.log('message prefix: ' + req.message[0] + ', prefix: ' + prefix)
 		console.log("here");
 		if (req.message[0] === prefix || req.isMentioned) {
 			console.log("I was mentioned... " + req.isMentioned);

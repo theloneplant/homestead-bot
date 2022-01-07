@@ -51,14 +51,16 @@ class DiscordClient {
 		var from = msg.author.toString();
 		console.log("here");
 		var firstMember = msg.mentions && msg.mentions.members && msg.mentions.members.first();
+		var targetUser = msg.member && msg.member.user;
 		var isMentioned = firstMember ? firstMember.user.id === this.discordClient.user.id : false;
 		console.log("here1");
 		// var isDM = msg.channel.type === 'dm';
 		var to = isMentioned ? botname : null;
+		console.log("replacing content");
 		var message = msg.content.replace(/<\S*/g, config.botId);
 		console.log("bot name " + botname);
-		console.log("first member " + msg.mentions.members.first());
-		console.log("target user " + msg.member.user);
+		console.log("first member " + firstMember);
+		console.log("target user " + targetUser);
 		console.log("mentioned " + isMentioned);
 		console.log("from " + from);
 		console.log("to " + to);
@@ -66,7 +68,7 @@ class DiscordClient {
 		var req = {
 			'from': from,
 			'to': to,
-			'targetUser': msg.member.user,
+			'targetUser': targetUser,
 			'isMentioned': isMentioned,
 			// 'isDM': isDM,
 			'message': message,
@@ -110,7 +112,7 @@ class DiscordClient {
 				this.updateStatus(res.action.statusText);
 			}
 			if (res.action.text || res.action.text === '' || res.action.options) {
-				var targetUser = msg.member.user;
+				var targetUser = msg.member && msg.member.user;
 				console.log("target user: " + targetUser);
 				if (targetUser) {
 					this.send(res, msg, targetUser);
@@ -170,11 +172,11 @@ class DiscordClient {
 			else {
 				this.discordClient.user.setActivity(config.groups[this.group].agents.command.prefix + 'help');
 			}
-			var options = {
-				content: message,
-				embeds: embeds
-			}
-			console.log(options);
+			var options = {};
+			if (message) options.content = message;
+			if (embeds) options.embeds = embeds;
+			console.log('message type: ' + typeof(message) + ', message: ' + message);
+			// console.log(options);
 
 			var clientConfig = config.groups[this.group].clients.discord;
 			var guild = this.discordClient.guilds[clientConfig.guildID];
@@ -184,6 +186,7 @@ class DiscordClient {
 			console.log("target user: " + targetUser + ", target channellll: " + targetChannel);
 
 			if (res.action.private && msg.author) {
+				console.log('sending DM');
 				msg.author.send(options).then((msg) => {
 					this.onSend(res, msg);
 				}).catch(console.log);
@@ -194,6 +197,7 @@ class DiscordClient {
 				}
 			} else if (targetChannel) {
 				if (targetChannel.type === 'GUILD_TEXT' || targetChannel.type === 'DM') {
+					console.log('sending message to channel ' + targetChannel.type);
 					var userText = targetUser ? '<@' + targetUser + '> ' : '';
 					this.sendMessage(targetChannel, userText, message, embeds, (msg) => {
 						this.stopTyping(msg);
