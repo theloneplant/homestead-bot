@@ -11,12 +11,10 @@ const config = file.read(path.join(__dirname, '../../../config/server.json'));
 class DiscordClient {
 
 	constructor(group, credentials) {
-		console.log("new client before creation")
 		this.MAX_MESSAGE_LENGTH = 2000;
 		this.MAX_MESSAGES = 10;
 		this.group = group;
 		this.state = new State();
-		console.log("new client before creation")
 		this.discordClient = new Discord.Client({
 			intents: [ 
 				Discord.Intents.FLAGS.GUILDS, 
@@ -29,9 +27,7 @@ class DiscordClient {
 				Discord.Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS,
 			]
 		});
-		console.log("new client")
 		this.discordClient.login(credentials.token);
-		console.log("new client login")
 		this.discordClient.on('ready', msg => {
 			console.log("new client ready")
 			this.discordClient.user.setActivity(config.groups[this.group].agents.command.prefix + 'help');
@@ -42,7 +38,7 @@ class DiscordClient {
 		});
 		this.defaultVoiceChannel = config.groups[this.group].clients.discord.defaultVoiceChannel;
 		agentHub.start(group, (res) => {
-
+			
 		})
 		console.log('Created discord client for ' + group);
 	}
@@ -53,15 +49,26 @@ class DiscordClient {
 		if (msg.author.bot) return;
 		var botname = this.discordClient.user.toString();
 		var from = msg.author.toString();
-		var to = msg.mentions.members.size ? botname : null;
+		console.log("here");
+		var firstMember = msg.mentions && msg.mentions.members && msg.mentions.members.first();
+		var isMentioned = firstMember ? firstMember.user.id === this.discordClient.user.id : false;
+		console.log("here1");
+		// var isDM = msg.channel.type === 'dm';
+		var to = isMentioned ? botname : null;
 		var message = msg.content.replace(/<\S*/g, config.botId);
-		console.log("bot name" + botname);
-		console.log("from" + from);
-		console.log("to" + to);
-		console.log(filter.message(message, this.state));
+		console.log("bot name " + botname);
+		console.log("first member " + msg.mentions.members.first());
+		console.log("target user " + msg.member.user);
+		console.log("mentioned " + isMentioned);
+		console.log("from " + from);
+		console.log("to " + to);
+		console.log("message " + message);
 		var req = {
 			'from': from,
 			'to': to,
+			'targetUser': msg.member.user,
+			'isMentioned': isMentioned,
+			// 'isDM': isDM,
 			'message': message,
 			'client': {
 				'group': this.group,
@@ -103,10 +110,10 @@ class DiscordClient {
 				this.updateStatus(res.action.statusText);
 			}
 			if (res.action.text || res.action.text === '' || res.action.options) {
-				if (res.targetUser) {
-					this.discordClient.fetchUser(res.targetUser).then((user) => {
-						this.send(res, msg, user);
-					}).catch(console.log);
+				var targetUser = msg.member.user;
+				console.log("target user: " + targetUser);
+				if (targetUser) {
+					this.send(res, msg, targetUser);
 				}
 				else {
 					this.send(res, msg);
@@ -143,31 +150,52 @@ class DiscordClient {
 			var embed = res.action.embed ? JSON.parse(this.replaceFormatting(JSON.stringify(res.action.embed))) : null;
 			message = filter.message(message, this.state);
 			embed = filter.embed(embed, this.state);
+			console.log(embed);
+			var embeds = undefined;
+			if (embed) {
+				const embedObj = new Discord.MessageEmbed();
+				if (embed.color) embedObj.setColor(embed.color);
+				if (embed.title) embedObj.setTitle(embed.title);
+				if (embed.url) embedObj.setURL(embed.url);
+				if (embed.description) embedObj.setDescription(embed.description);
+				if (embed.thumbnail && embed.thumbnail.url) embedObj.setThumbnail(embed.thumbnail.url);
+				if (embed.fields) embedObj.addFields(embed.fields);
+				if (embed.image) embedObj.setImage(embed.image);
+				embeds = [embedObj];
+			}
+
 			if (this.state.isShakespeare()) {
 				this.discordClient.user.setActivity(config.groups[this.group].agents.command.prefix + 'helpeth');
 			}
-			console.log(embed);
-			var options = { embed };
+			else {
+				this.discordClient.user.setActivity(config.groups[this.group].agents.command.prefix + 'help');
+			}
+			var options = {
+				content: message,
+				embeds: embeds
+			}
 			console.log(options);
 
 			var clientConfig = config.groups[this.group].clients.discord;
 			var guild = this.discordClient.guilds[clientConfig.guildID];
-			var targetUser = user || (msg && msg.author && msg.author.toString());
+			console.log("userrr: " + user || (msg && msg.member && msg.member.user));
+			var targetUser = user || (msg && msg.member && msg.member.user);
 			var targetChannel = (msg && msg.channel) || (guild && guild.channels[clientConfig.defaultTextChannel]);
+			console.log("target user: " + targetUser + ", target channellll: " + targetChannel);
 
-			if (res.action.private && targetUser) {
-				targetUser.send(message, options).then((msg) => {
+			if (res.action.private && msg.author) {
+				msg.author.send(options).then((msg) => {
 					this.onSend(res, msg);
 				}).catch(console.log);
 				if (targetChannel && targetChannel.type === 'GUILD_TEXT') {
-					this.sendTemp(msg, 'I\'ve sent you a PM');
+					this.sendReply(msg, 'I\'ve sent you a PM');
 				} else {
 					console.error('Unable to send text message to channel of type ' + targetChannel.type);
 				}
 			} else if (targetChannel) {
 				if (targetChannel.type === 'GUILD_TEXT' || targetChannel.type === 'DM') {
-					var userText = targetUser ? targetUser + ' ' : '';
-					this.sendMessage(targetChannel, userText, message, options, (msg) => {
+					var userText = targetUser ? '<@' + targetUser + '> ' : '';
+					this.sendMessage(targetChannel, userText, message, embeds, (msg) => {
 						this.stopTyping(msg);
 						this.onSend(res, msg);
 					});
@@ -183,7 +211,7 @@ class DiscordClient {
 		}
 	}
 
-	sendMessage(targetChannel, userText, message, options, cb, maxMessages = this.MAX_MESSAGES) {
+	sendMessage(targetChannel, userText, message, embeds, cb, maxMessages = this.MAX_MESSAGES) {
 		var messageRemaining = message;
 		var messageChunk = "";
 		var paragraphArr = messageRemaining.split('\n');
@@ -223,7 +251,11 @@ class DiscordClient {
 			}
 		}
 
-		targetChannel.send(userText + messageChunk, options).then((msg) => {
+		var options = {
+			content: userText + messageChunk,
+			embeds: embeds
+		}
+		targetChannel.send(options).then((msg) => {
 			console.log("sent (" + maxMessages + "): " + messageRemaining)
 			if (maxMessages - 1 <= 0 || messageRemaining.length === 0) {
 				cb(msg);
@@ -246,8 +278,21 @@ class DiscordClient {
 		console.log('options');
 		console.log(options);
 		msg.channel.send(text, options).then(message => {
-			msg.channel.stopTyping();
-			message.delete(timeout);
+			setTimeout(() => {
+				message.delete();
+			}, timeout);
+		}).catch(console.log);
+	}
+
+	sendReply(msg, res, options) {
+		var text = res && res.action && res.action.text ? res.action.text : res;
+		text = filter.message(text, this.state);
+		console.log('options');
+		console.log(options);
+		msg.reply(text, options).then(message => {
+			// setTimeout(() => {
+			// 	message.delete();
+			// }, timeout);
 		}).catch(console.log);
 	}
 
@@ -328,7 +373,7 @@ class DiscordClient {
 		if (this.dispatcher) {
 			this.dispatcher.end('Playing new track');
 		}
-		if (msg && msg.member && msg.member.voice && msg.member.voice.channel) {
+		if (msg && msg.author && msg.member.voice && msg.member.voice.channel) {
 			voiceChannel = msg.member.voice.channel;
 			console.log("using vc1: " + voiceChannel + ", " + this.defaultVoiceChannel);
 		}

@@ -16,8 +16,12 @@ module.exports = function() {
 			}
 			else {
 				console.log('Cleverbot failed to receive message');
+				console.log(JSON.stringify(response));
 				action.sendMessage('I\'m dumb now, talk to me later', req, cb);
 			}
+		}, (error, originalMessage, response) => {
+			console.log("Cleverbot error: " + error);
+			console.log(originalMessage + " --- " + response);
 		});
 	}
 

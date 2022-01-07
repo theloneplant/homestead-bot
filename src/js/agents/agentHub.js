@@ -42,22 +42,27 @@ module.exports = function() {
 				if (isMentioned(req)) {
 					var res = { 'startTyping': true };
 					cb(null, res);
-					console.log("matching mentioned: " + JSON.stringify(req))
+					console.log("matching reply agent mentioned: " + JSON.stringify(req))
 					matchAgent(replyAgents, req, (res) => {
 						actionHub.run(res, cb);
 					});
 				}
 				else {
+					console.log("matching idle agents");
 					matchAgent(idleAgents, req, (res) => {
 						// Only respond if there is a match
+						console.log("matched agent: " + res.agent);
 						if (res.agent) {
 							actionHub.run(res, cb);
+						}
+						else {
+							console.log("No idle agent was matched");
 						}
 					});
 				}
 			}
 			else {
-				console.log("matching other")
+				console.log("matching reply agents")
 				matchAgent(replyAgents, req, (res) => {
 					actionHub.run(res, cb);
 				});
@@ -71,6 +76,7 @@ module.exports = function() {
 
 	// Loops through all agents in a list and sees if the request matches an action
 	function matchAgent(list, req, cb, i = 0) {
+		console.log("matching agent " + i);
 		if (i < list.length) {
 			list[i].interpret(req, (match, res, err) => {
 				if (err) {
@@ -79,6 +85,7 @@ module.exports = function() {
 					matchAgent(list, req, cb, ++i);
 				}
 				if (match) {
+					console.log("found matching agent");
 					cb(res);
 				}
 				else {
@@ -93,10 +100,13 @@ module.exports = function() {
 	}
 
 	function isMentioned(req) {
-		var msgArr = req.message.replace(/[\.,\/@#!?$%\^&\*;:{}=\-_`~()]/g, '').split(/\s/g);
+		console.log('message prefix: ' + req.message[0] + ', prefix: ' + prefix)
+		var msgArr = req.message.replace(/[\.,\/@#?!$%\^&\*;:{}=\-_`~()]/g, '').split(/\s/g);
 		var nicknames = config.groups[req.client.group].nicknames;
 		var prefix = config.groups[req.client.group].agents.command.prefix;
-		if (req.message[0] === prefix) {
+		console.log("here");
+		if (req.message[0] === prefix || req.isMentioned) {
+			console.log("I was mentioned... " + req.isMentioned);
 			return true;
 		}
 		var flag = false;
@@ -108,6 +118,7 @@ module.exports = function() {
 				if (word.indexOf(name) === 0 && (word.length === name.length ||
 						word.replace(name, '').replace(contractions, '').length === 0)) {
 					flag = true;
+					console.log("I was mentionedddd ");
 				}
 			}
 		}
