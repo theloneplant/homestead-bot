@@ -1,7 +1,6 @@
-const fs = require('fs');
 const path = require('path');
 const Discord = require('discord.js');
-const ytdl = require('ytdl-core');
+const { createAudioPlayer, createAudioResource, joinVoiceChannel, getVoiceConnection, VoiceConnectionStatus, AudioPlayerStatus } = require('@discordjs/voice');
 const file = require(path.join(__dirname, '../util/file'));
 const State = require(path.join(__dirname, '../state/state'));
 const filter = require(path.join(__dirname, '../state/filter'));
@@ -9,12 +8,12 @@ const agentHub = require(path.join(__dirname, '../agents/agentHub'));
 const config = file.read(path.join(__dirname, '../../../config/server.json'));
 
 class DiscordClient {
-
 	constructor(group, credentials) {
 		this.MAX_MESSAGE_LENGTH = 2000;
 		this.MAX_MESSAGES = 10;
 		this.group = group;
 		this.state = new State();
+		this.defaultVoiceChannel = config.groups[this.group].clients.discord.defaultVoiceChannel;
 		this.discordClient = new Discord.Client({
 			intents: [ 
 				Discord.Intents.FLAGS.GUILDS, 
@@ -25,6 +24,7 @@ class DiscordClient {
 				Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
 				Discord.Intents.FLAGS.DIRECT_MESSAGE_TYPING,
 				Discord.Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS,
+				Discord.Intents.FLAGS.GUILD_VOICE_STATES
 			]
 		});
 		this.discordClient.login(credentials.token);
@@ -36,53 +36,54 @@ class DiscordClient {
 			console.log("new client message")
 			this.receive(msg);
 		});
-		this.defaultVoiceChannel = config.groups[this.group].clients.discord.defaultVoiceChannel;
 		agentHub.start(group, (res) => {
 			
-		})
+		});
 		console.log('Created discord client for ' + group);
 	}
 
 	receive(msg) {
-		console.log("got message");
-		console.log(JSON.stringify(msg));
-		if (msg.author.bot) return;
-		var botname = this.discordClient.user.toString();
-		var from = msg.author.toString();
-		console.log("here");
-		var firstMember = msg.mentions && msg.mentions.members && msg.mentions.members.first();
-		var targetUser = msg.member && msg.member.user;
-		var isMentioned = firstMember ? firstMember.user.id === this.discordClient.user.id : false;
-		console.log("here1");
-		// var isDM = msg.channel.type === 'dm';
-		var to = isMentioned ? botname : null;
-		console.log("replacing content");
-		var message = msg.content.replace(/<\S*/g, config.botId);
-		console.log("bot name " + botname);
-		console.log("first member " + firstMember);
-		console.log("target user " + targetUser);
-		console.log("mentioned " + isMentioned);
-		console.log("from " + from);
-		console.log("to " + to);
-		console.log("message " + message);
-		var req = {
-			'from': from,
-			'to': to,
-			'targetUser': targetUser,
-			'isMentioned': isMentioned,
-			// 'isDM': isDM,
-			'message': message,
-			'client': {
-				'group': this.group,
-				'state': this.state.getState(),
-				'channel': {
-					'type': msg.channel.type
-				},
-				'type': 'discord'
-			}
-		};
-
 		try {
+			console.log("got message");
+			console.log(JSON.stringify(msg));
+			if (msg.author.bot) return;
+			var botname = this.discordClient.user.toString();
+			console.log("here");
+			var firstMember = msg.mentions && msg.mentions.members && msg.mentions.members.first();
+			var targetUser = msg.member && msg.member.user;
+			console.log("here1");
+			// var isDM = msg.channel.type === 'dm';
+			var isMentioned = firstMember ? firstMember.user.id === this.discordClient.user.id : false;
+			isMentioned = isMentioned || firstMember === botname;
+			console.log(firstMember=== botname);
+			var from = msg.author.toString();
+			var to = isMentioned ? botname : null;
+			console.log("replacing content");
+			var message = msg.content.replace(/<\S*/g, botname);
+			console.log("bot name " + botname);
+			console.log("first member " + firstMember);
+			console.log("target user " + targetUser);
+			console.log("mentioned " + isMentioned);
+			console.log("from " + from);
+			console.log("to " + to);
+			console.log("message " + message);
+			var req = {
+				'from': from,
+				'to': to,
+				'targetUser': targetUser,
+				'isMentioned': isMentioned,
+				// 'isDM': isDM,
+				'message': message,
+				'client': {
+					'group': this.group,
+					'state': this.state.getState(),
+					'channel': {
+						'type': msg.channel.type
+					},
+					'type': 'discord'
+				}
+			};
+
 			agentHub.interpret(req, (err, res, cb) => {
 				console.log(res);
 				if (res.startTyping) {
@@ -132,7 +133,7 @@ class DiscordClient {
 				}
 			}
 			else if (res.action.streamService === 'youtube') {
-				this.playYoutube(res.action.streamUrl, msg, () => {
+				this.playYoutube(res.action, msg, () => {
 					console.log("done playing")
 					if (typeof res.action.onEnd === 'function') {
 						console.log("onEnd is valid")
@@ -338,20 +339,20 @@ class DiscordClient {
 	}
 
 	mediaControl(controlFunction) {
-		if (this.dispatcher && typeof this.dispatcher.destroyed === 'boolean' && !this.dispatcher.destroyed) {
+		if (this.audioPlayer) {
 			if (controlFunction === 'play' || controlFunction === 'resume') {
-				this.dispatcher.resume();
-				this.sendHeartbeat();
+				this.audioPlayer.unpause();
+				// this.sendHeartbeat();
 				return undefined;
 			}
 			else if (controlFunction === 'pause') {
-				this.dispatcher.pause();
-				clearTimeout(this.heartbeatTimeout);
+				this.audioPlayer.pause();
+				// clearTimeout(this.heartbeatTimeout);
 				return undefined;
 			}
 			else if (controlFunction === 'stop') {
-				this.dispatcher.end('User requested stream to end');
-				clearTimeout(this.heartbeatTimeout);
+				this.audioPlayer.stop();
+				// clearTimeout(this.heartbeatTimeout);
 				return undefined;
 			}
 			return 'Sorry I don\'t support ' + controlFunction + ' yet';
@@ -366,12 +367,12 @@ class DiscordClient {
 			}
 			if (!this.dispatcher.paused) {
 				this.dispatcher.resume();
-				// this.sendHeartbeat();
+				this.sendHeartbeat();
 			}
 		}, 30000);
 	}
 
-	playYoutube(streamUrl, msg, cb) {
+	playYoutube(info, msg, cb) {
 		console.log("Playing youtube")
 		var voiceChannel;
 		if (this.dispatcher) {
@@ -385,35 +386,76 @@ class DiscordClient {
 			voiceChannel = this.discordClient.channels.cache.get(this.defaultVoiceChannel);
 			console.log("using vc2: " + voiceChannel + ", " + this.defaultVoiceChannel);
 		}
-		voiceChannel.join().then((connection) => {
-			console.log("Joined voice channel")
-			this.connection = connection;
-			var stream = ytdl(streamUrl, {
-				filter: 'audioonly'
-			});
-			this.dispatcher = this.connection.playStream(stream, {
-				seek: 0,
-				volume: 1
-			});
-			// this.sendHeartbeat();
-			// this.dispatcher.setBitrate('auto');
-			this.dispatcher.on('error', (error) => {
-				console.log('Dispatcher error: \n' + error);
-			});
-			this.dispatcher.on('end', (reason) => {
-				console.log('Reason: ' + reason);
-				// This is a temporary hack for playing a song after one is already started
-				this.connection.disconnect();
 
+		console.log('current connection: ' + this.connection)
+		
+		if (!this.connection) {
+			this.connection = joinVoiceChannel({
+				channelId: voiceChannel.id,
+				guildId: voiceChannel.guild.id,
+				adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+			});
+			console.log('new connection: ' + this.connection)
+			this.connection.on(VoiceConnectionStatus.Ready, () => {
+				console.log('ready for voice');
+				this.PlayAudio(info, cb);
+			});
+			this.connection.on(VoiceConnectionStatus.Disconnected, () => {
+				console.log('disconnected from voice');
+				if (this.audioPlayer) {
+					this.audioPlayer.stop();
+					this.audioPlayer = null;
+				}
+				if (this.voiceSubscription) {
+					this.voiceSubscription.unsubscribe();
+					this.voiceSubscription = null;
+				}
+			});
+		}
+		else {
+			this.PlayAudio(info, cb);
+		}
+	}
+
+	PlayAudio(info, cb) {
+		console.log('playing audio');
+		if (!this.audioPlayer) {
+			console.log('creating audio player');
+			this.audioPlayer = createAudioPlayer();
+			this.audioPlayer.on(AudioPlayerStatus.Playing, () => {
+				console.log('The audio player has started playing!');
+				clearTimeout(this.audioFinishTimeout);
+			});
+			this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
+				console.log('The audio player has stopped playing!');
+				this.audioFinishTimeout = setTimeout(() => {
+					if (this.connection) {
+						this.connection.disconnect();
+						this.connection = null;
+					}
+				}, 10000);
 				if (typeof cb === "function") {
 					console.log("Done playing, sending response");
 					cb();
 				};
 			});
-			this.connection.on('error', (error) => {
-				console.log('Connection error: \n' + error);
-			});
-		}).catch(console.log);
+		}
+		if (!this.voiceSubscription) {
+			console.log('creating voice subscription');
+			this.voiceSubscription = this.connection.subscribe(this.audioPlayer);
+		}
+		
+		// Play audio
+		console.log('playing stream from file ' + info.filename);
+		var isVolumeSet = typeof info.volume === 'number';
+		const resource = createAudioResource(info.filename, { inlineVolume: isVolumeSet });
+		if (isVolumeSet) {
+			console.log('setting volume to ', info.volume);
+			resource.volume.setVolume(info.volume);
+		}
+		console.log('playing audio');
+		
+		this.audioPlayer.play(resource);
 	}
 }
 

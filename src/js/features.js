@@ -121,6 +121,19 @@ module.exports = function() {
 				'Hey ' + id + ' stop'
 			]
 		},
+		'next': {
+			'name': 'Play Next Music Playback',
+			'description': 'Plays the next track in the queue, if any.',
+			'action': 'PlayMusic',
+			'commands': [{
+				'command': 'next',
+				'constants': [{'name': 'mediaControl', 'value': 'next'}]
+			}],
+			'phrases': [
+				id + ' next',
+				'Hey ' + id + ' next'
+			]
+		},
 		'goodjob': {
 			'name': 'Good Job!',
 			'description': 'You\'re doing good, keep it up!',
@@ -128,7 +141,7 @@ module.exports = function() {
 			'commands': [{
 				'command': 'goodjob',
 				'constants': [
-					{'name': 'search', 'value': '-ynhl8wt3pc'},
+					{'name': 'search', 'value': '\\-yNhl8wT3Pc'},
 					{'name': 'interrupt', 'value': true},
 					{'name': 'message', 'value': 'Good Job!'}
 				]
@@ -142,8 +155,50 @@ module.exports = function() {
 				'command': 'oof',
 				'constants': [
 					{'name': 'search', 'value': 'iTHKqgKO45M'},
+					{'name': 'volume', 'value': 0.2},
 					{'name': 'interrupt', 'value': true},
 					{'name': 'message', 'value': 'OOF'}
+				]
+			}]
+		},
+		'ohno': {
+			'name': 'Oh no',
+			'description': 'Oh no!',
+			'action': 'PlayMusic',
+			'commands': [{
+				'command': 'ohno',
+				'constants': [
+					{'name': 'search', 'value': 'kkDMz2ml0gw'},
+					{'name': 'interrupt', 'value': true},
+					{'name': 'message', 'value': 'OH NO'}
+				]
+			}]
+		},
+		'shindeiru': {
+			'name': 'You are already dead',
+			'description': 'お前はもう死んでいる。',
+			'action': 'PlayMusic',
+			'commands': [{
+				'command': 'shindeiru',
+				'constants': [
+					{'name': 'search', 'value': '5fAn276N1nU'},
+					{'name': 'volume', 'value': 0.3},
+					{'name': 'interrupt', 'value': true},
+					{'name': 'message', 'value': 'お前はもう死んでいる。'}
+				]
+			}]
+		},
+		'pika': {
+			'name': 'Pikachu',
+			'description': 'Pika pi, pikachu!',
+			'action': 'PlayMusic',
+			'commands': [{
+				'command': 'pika',
+				'constants': [
+					{'name': 'search', 'value': '1MzZOP5N2gw'},
+					{'name': 'volume', 'value': 0.6},
+					{'name': 'interrupt', 'value': true},
+					{'name': 'message', 'value': 'Pika pika!'}
 				]
 			}]
 		},

@@ -15,6 +15,7 @@ module.exports = function() {
 				cb(error);
 			}
 			else {
+				console.log('got result!');
 				console.log(JSON.stringify(result));
 				if (result.items[0].id.channelId) {
 					cb(null, 'channel', 'https://www.youtube.com/channel/' + result.items[0].id.channelId);

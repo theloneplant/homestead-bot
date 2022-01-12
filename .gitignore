@@ -9,6 +9,7 @@ yarn-error.log*
 ssl/
 
 # Config
+cache/
 config/
 
 # Credentials
