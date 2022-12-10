@@ -18,7 +18,7 @@
     "cluster": "^0.7.7",
     "discord.js": "^13.5.0",
     "entities": "^3.0.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "ffmpeg": "0.0.4",
     "ffmpeg-static": "^4.4.1",
     "forever": "^4.0.1",
